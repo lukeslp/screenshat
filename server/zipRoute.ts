@@ -1,31 +1,20 @@
 import { Router } from "express";
 import archiver from "archiver";
 import { getScreenshotsByJobId, getCaptureJobById } from "./db";
-import { sdk } from "./_core/sdk";
 import { PRESET_MAP } from "../shared/presets";
 
 const zipRouter = Router();
 
 zipRouter.get("/api/download-zip/:jobId", async (req, res) => {
   try {
-    // Authenticate the user
-    let user;
-    try {
-      user = await sdk.authenticateRequest(req);
-    } catch {
-      res.status(401).json({ error: "Unauthorized" });
-      return;
-    }
-
     const jobId = parseInt(req.params.jobId);
     if (isNaN(jobId)) {
       res.status(400).json({ error: "Invalid job ID" });
       return;
     }
 
-    // Verify ownership
     const job = await getCaptureJobById(jobId);
-    if (!job || job.userId !== user.id) {
+    if (!job) {
       res.status(404).json({ error: "Job not found" });
       return;
     }

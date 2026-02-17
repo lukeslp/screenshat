@@ -1,4 +1,3 @@
-import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -90,14 +89,13 @@ function ScreenshotCard({
     }
   };
 
-  // Calculate aspect ratio for the thumbnail container
   const aspectRatio = screenshot.width / screenshot.height;
   const isPortrait = aspectRatio < 1;
   const isSquare = Math.abs(aspectRatio - 1) < 0.1;
 
   return (
     <>
-      <Card className="group border-border/50 bg-card/60 hover:border-border/80 hover:bg-card/80 transition-all overflow-hidden">
+      <Card className="group border-border/40 bg-card/50 hover:border-border/60 transition-all overflow-hidden">
         <div
           className={`relative bg-black/20 overflow-hidden ${
             isPortrait
@@ -114,23 +112,23 @@ function ScreenshotCard({
             loading="lazy"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-          <div className="absolute bottom-0 left-0 right-0 p-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="absolute bottom-0 left-0 right-0 p-2.5 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
             <Button
               size="sm"
               variant="secondary"
-              className="h-8 gap-1.5 text-xs bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20"
+              className="h-7 gap-1 text-[11px] bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20"
               onClick={() => setPreviewOpen(true)}
             >
-              <Eye className="h-3.5 w-3.5" />
+              <Eye className="h-3 w-3" />
               Preview
             </Button>
             <Button
               size="sm"
               variant="secondary"
-              className="h-8 gap-1.5 text-xs bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20"
+              className="h-7 gap-1 text-[11px] bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20"
               onClick={handleDownload}
             >
-              <Download className="h-3.5 w-3.5" />
+              <Download className="h-3 w-3" />
               Download
             </Button>
           </div>
@@ -140,7 +138,7 @@ function ScreenshotCard({
                 <TooltipTrigger asChild>
                   <button
                     onClick={() => setAnalysisOpen(true)}
-                    className="h-7 w-7 rounded-full bg-primary/80 backdrop-blur-sm flex items-center justify-center text-white text-xs font-bold shadow-lg"
+                    className="h-6 w-6 rounded-full bg-primary/80 backdrop-blur-sm flex items-center justify-center text-white text-[10px] font-bold shadow-lg"
                   >
                     {analysis.qualityScore}
                   </button>
@@ -150,37 +148,37 @@ function ScreenshotCard({
             </div>
           )}
         </div>
-        <CardContent className="p-3 space-y-2">
+        <CardContent className="p-2.5 space-y-1.5">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-semibold">{preset?.label || screenshot.presetKey}</h3>
-              <p className="text-xs text-muted-foreground font-mono">
-                {screenshot.width} x {screenshot.height}
+              <h3 className="text-xs font-semibold">{preset?.label || screenshot.presetKey}</h3>
+              <p className="text-[10px] text-muted-foreground font-mono">
+                {screenshot.width} × {screenshot.height}
               </p>
             </div>
             <div className="flex items-center gap-1">
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-mono">
+              <Badge variant="outline" className="text-[9px] px-1 py-0 font-mono h-4">
                 {preset?.aspectRatio || "—"}
               </Badge>
-              <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+              <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4">
                 {formatBytes(screenshot.fileSizeBytes)}
               </Badge>
             </div>
           </div>
-          <div className="flex gap-1.5">
+          <div className="flex gap-1">
             <Button
               size="sm"
               variant="outline"
-              className="h-7 flex-1 text-xs gap-1"
+              className="h-6 flex-1 text-[10px] gap-1"
               onClick={handleDownload}
             >
-              <Download className="h-3 w-3" />
+              <Download className="h-2.5 w-2.5" />
               Download
             </Button>
             <Button
               size="sm"
               variant={analysis ? "secondary" : "outline"}
-              className="h-7 text-xs gap-1 px-2"
+              className="h-6 text-[10px] gap-1 px-2"
               onClick={() => {
                 if (analysis) {
                   setAnalysisOpen(true);
@@ -191,15 +189,15 @@ function ScreenshotCard({
               disabled={isAnalyzing}
             >
               {isAnalyzing ? (
-                <Loader2 className="h-3 w-3 animate-spin" />
+                <Loader2 className="h-2.5 w-2.5 animate-spin" />
               ) : analysis ? (
                 <>
-                  <Check className="h-3 w-3" />
+                  <Check className="h-2.5 w-2.5" />
                   Analysis
                 </>
               ) : (
                 <>
-                  <Sparkles className="h-3 w-3" />
+                  <Sparkles className="h-2.5 w-2.5" />
                   Analyze
                 </>
               )}
@@ -211,13 +209,12 @@ function ScreenshotCard({
       {/* Full Preview Dialog */}
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
         <DialogContent className="max-w-[90vw] max-h-[90vh] p-0 overflow-hidden bg-black/95">
-          <DialogHeader className="absolute top-0 left-0 right-0 z-10 p-4 bg-gradient-to-b from-black/80 to-transparent">
-            <DialogTitle className="text-white text-sm font-medium">
-              {preset?.label || screenshot.presetKey} — {screenshot.width} x{" "}
-              {screenshot.height}
+          <DialogHeader className="absolute top-0 left-0 right-0 z-10 p-3 bg-gradient-to-b from-black/80 to-transparent">
+            <DialogTitle className="text-white text-xs font-medium">
+              {preset?.label || screenshot.presetKey} — {screenshot.width} × {screenshot.height}
             </DialogTitle>
           </DialogHeader>
-          <div className="flex items-center justify-center p-4 pt-14 max-h-[90vh] overflow-auto">
+          <div className="flex items-center justify-center p-4 pt-12 max-h-[90vh] overflow-auto">
             <img
               src={screenshot.fileUrl}
               alt="Full preview"
@@ -231,41 +228,40 @@ function ScreenshotCard({
       <Dialog open={analysisOpen} onOpenChange={setAnalysisOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-primary" />
+            <DialogTitle className="flex items-center gap-2 text-sm">
+              <Sparkles className="h-3.5 w-3.5 text-primary" />
               AI Analysis — {preset?.label || screenshot.presetKey}
             </DialogTitle>
           </DialogHeader>
           {analysis && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/5 border border-primary/10">
-                <div className="text-2xl font-bold text-primary">
+            <div className="space-y-3">
+              <div className="flex items-center gap-3 p-2.5 rounded-lg bg-primary/5 border border-primary/10">
+                <div className="text-xl font-bold text-primary">
                   {analysis.qualityScore}
-                  <span className="text-sm font-normal text-muted-foreground">/10</span>
+                  <span className="text-xs font-normal text-muted-foreground">/10</span>
                 </div>
                 <div>
-                  <p className="text-sm font-medium">Quality Score</p>
-                  <p className="text-xs text-muted-foreground">
-                    Focal point: {Math.round(analysis.focalPoint.x)}%,{" "}
-                    {Math.round(analysis.focalPoint.y)}%
+                  <p className="text-xs font-medium">Quality Score</p>
+                  <p className="text-[10px] text-muted-foreground">
+                    Focal point: {Math.round(analysis.focalPoint.x)}%, {Math.round(analysis.focalPoint.y)}%
                   </p>
                 </div>
               </div>
 
               <div>
-                <h4 className="text-sm font-semibold mb-1.5">Description</h4>
-                <p className="text-sm text-muted-foreground leading-relaxed">
+                <h4 className="text-xs font-semibold mb-1">Description</h4>
+                <p className="text-xs text-muted-foreground leading-relaxed">
                   {analysis.description}
                 </p>
               </div>
 
               {analysis.suggestions.length > 0 && (
                 <div>
-                  <h4 className="text-sm font-semibold mb-1.5">Suggestions</h4>
-                  <ul className="space-y-1.5">
+                  <h4 className="text-xs font-semibold mb-1">Suggestions</h4>
+                  <ul className="space-y-1">
                     {analysis.suggestions.map((s, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                        <Info className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />
+                      <li key={i} className="flex items-start gap-1.5 text-xs text-muted-foreground">
+                        <Info className="h-3 w-3 text-primary shrink-0 mt-0.5" />
                         {s}
                       </li>
                     ))}
@@ -275,17 +271,16 @@ function ScreenshotCard({
 
               {analysis.cropSuggestions.length > 0 && (
                 <div>
-                  <h4 className="text-sm font-semibold mb-1.5">Crop Regions</h4>
-                  <div className="grid grid-cols-2 gap-2">
+                  <h4 className="text-xs font-semibold mb-1">Crop Regions</h4>
+                  <div className="grid grid-cols-2 gap-1.5">
                     {analysis.cropSuggestions.map((crop, i) => (
                       <div
                         key={i}
-                        className="text-xs p-2 rounded-md bg-secondary/50 border border-border/50"
+                        className="text-[10px] p-1.5 rounded bg-secondary/50 border border-border/40"
                       >
                         <span className="font-medium">{crop.format}</span>
                         <span className="text-muted-foreground block font-mono mt-0.5">
-                          {Math.round(crop.x)},{Math.round(crop.y)} → {Math.round(crop.width)}x
-                          {Math.round(crop.height)}
+                          {Math.round(crop.x)},{Math.round(crop.y)} → {Math.round(crop.width)}×{Math.round(crop.height)}
                         </span>
                       </div>
                     ))}
@@ -301,7 +296,6 @@ function ScreenshotCard({
 }
 
 export default function CaptureResults() {
-  useAuth({ redirectOnUnauthenticated: true });
   const params = useParams<{ jobId: string }>();
   const jobId = parseInt(params.jobId || "0");
 
@@ -345,14 +339,14 @@ export default function CaptureResults() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col bg-background">
         <Navbar />
         <main className="flex-1 container py-8">
           <div className="max-w-6xl mx-auto space-y-6">
-            <Skeleton className="h-8 w-64" />
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <Skeleton key={i} className="aspect-video rounded-xl" />
+            <Skeleton className="h-6 w-48" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <Skeleton key={i} className="aspect-video rounded-lg" />
               ))}
             </div>
           </div>
@@ -363,18 +357,18 @@ export default function CaptureResults() {
 
   if (error || !job) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col bg-background">
         <Navbar />
         <main className="flex-1 container py-16">
-          <div className="max-w-md mx-auto text-center space-y-4">
-            <AlertCircle className="h-12 w-12 text-destructive mx-auto" />
-            <h2 className="text-xl font-semibold">Job not found</h2>
-            <p className="text-sm text-muted-foreground">
-              {error?.message || "This capture job doesn't exist or you don't have access."}
+          <div className="max-w-sm mx-auto text-center space-y-3">
+            <AlertCircle className="h-10 w-10 text-destructive mx-auto" />
+            <h2 className="text-lg font-semibold">Job not found</h2>
+            <p className="text-xs text-muted-foreground">
+              {error?.message || "This capture job doesn't exist."}
             </p>
             <Link href="/">
-              <Button variant="outline" className="gap-2">
-                <ArrowLeft className="h-4 w-4" />
+              <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+                <ArrowLeft className="h-3.5 w-3.5" />
                 Back to home
               </Button>
             </Link>
@@ -385,58 +379,56 @@ export default function CaptureResults() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
-      <main className="flex-1 container py-8">
-        <div className="max-w-6xl mx-auto space-y-6">
+      <main className="flex-1 container py-6">
+        <div className="max-w-6xl mx-auto space-y-5">
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="space-y-1">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <Link href="/">
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                    <ArrowLeft className="h-4 w-4" />
-                  </Button>
+                  <button className="h-7 w-7 rounded-md flex items-center justify-center hover:bg-secondary/60 transition-colors">
+                    <ArrowLeft className="h-3.5 w-3.5" />
+                  </button>
                 </Link>
-                <h1 className="text-2xl font-bold tracking-tight">Capture Results</h1>
+                <h1 className="text-lg font-bold tracking-tight">Results</h1>
                 <Badge
                   variant={job.status === "completed" ? "default" : "destructive"}
-                  className="text-xs"
+                  className="text-[10px] h-5"
                 >
                   {job.status}
                 </Badge>
               </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground ml-11">
-                <ExternalLink className="h-3.5 w-3.5" />
+              <div className="flex items-center gap-2 text-xs text-muted-foreground ml-9">
+                <ExternalLink className="h-3 w-3" />
                 <a
                   href={job.url as string}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:text-foreground transition-colors font-mono text-xs truncate max-w-md"
+                  className="hover:text-foreground transition-colors font-mono text-[11px] truncate max-w-md"
                 >
                   {job.url as string}
                 </a>
-                <span className="text-border">|</span>
-                <span className="text-xs">
-                  {job.screenshots.length} screenshot{job.screenshots.length !== 1 ? "s" : ""}
-                </span>
+                <span className="text-border">·</span>
+                <span>{job.screenshots.length} screenshots</span>
               </div>
             </div>
 
-            <div className="flex gap-2 ml-11 sm:ml-0">
+            <div className="flex gap-1.5 ml-9 sm:ml-0">
               <Link href="/">
-                <Button variant="outline" size="sm" className="gap-1.5 text-xs">
-                  <Camera className="h-3.5 w-3.5" />
-                  New Capture
+                <Button variant="outline" size="sm" className="h-7 gap-1 text-[11px]">
+                  <Camera className="h-3 w-3" />
+                  New
                 </Button>
               </Link>
               {job.screenshots.length > 0 && (
                 <Button
                   size="sm"
-                  className="gap-1.5 text-xs"
+                  className="h-7 gap-1 text-[11px]"
                   onClick={handleDownloadAll}
                 >
-                  <PackageOpen className="h-3.5 w-3.5" />
+                  <PackageOpen className="h-3 w-3" />
                   Download All
                 </Button>
               )}
@@ -445,7 +437,7 @@ export default function CaptureResults() {
 
           {/* Screenshot Grid */}
           {job.screenshots.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
               {job.screenshots.map(ss => (
                 <ScreenshotCard
                   key={ss.id}
@@ -457,9 +449,9 @@ export default function CaptureResults() {
             </div>
           ) : (
             <div className="text-center py-16">
-              <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold">No screenshots captured</h3>
-              <p className="text-sm text-muted-foreground mt-1">
+              <AlertCircle className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+              <h3 className="text-sm font-semibold">No screenshots captured</h3>
+              <p className="text-xs text-muted-foreground mt-1">
                 The capture may have failed. Try again with different settings.
               </p>
             </div>

@@ -2,19 +2,20 @@ import { COOKIE_NAME } from "@shared/const";
 import { PRESETS, PRESET_MAP } from "@shared/presets";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
+import { publicProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import { captureScreenshots } from "./screenshotService";
 import { storagePut } from "./storage";
 import {
   createCaptureJob,
   updateCaptureJobStatus,
-  getCaptureJobsByUser,
+  getAllCaptureJobs,
   getCaptureJobById,
   createScreenshot,
   getScreenshotsByJobId,
   getScreenshotById,
   updateScreenshotAnalysis,
+  deleteCaptureJob,
 } from "./db";
 import { invokeLLM } from "./_core/llm";
 import { nanoid } from "nanoid";
@@ -32,13 +33,9 @@ export const appRouter = router({
   }),
 
   capture: router({
-    // Get available presets
-    presets: publicProcedure.query(() => {
-      return PRESETS;
-    }),
+    presets: publicProcedure.query(() => PRESETS),
 
-    // Start a capture job
-    start: protectedProcedure
+    start: publicProcedure
       .input(
         z.object({
           url: z.string().url("Please enter a valid URL"),
@@ -48,16 +45,13 @@ export const appRouter = router({
           extraWaitMs: z.number().min(0).max(30000).optional(),
         })
       )
-      .mutation(async ({ ctx, input }) => {
-        // Validate preset keys
+      .mutation(async ({ input }) => {
         const validKeys = input.presetKeys.filter(k => PRESET_MAP[k]);
         if (validKeys.length === 0) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "No valid presets selected" });
         }
 
-        // Create the job record
         const job = await createCaptureJob({
-          userId: ctx.user.id,
           url: input.url,
           presets: validKeys,
           waitStrategy: input.waitStrategy,
@@ -65,7 +59,6 @@ export const appRouter = router({
           extraWaitMs: input.extraWaitMs ?? 0,
         });
 
-        // Process the capture (run in background-ish but we await for the response)
         try {
           await updateCaptureJobStatus(job.id, "processing");
 
@@ -77,15 +70,13 @@ export const appRouter = router({
             extraWaitMs: input.extraWaitMs,
           });
 
-          // Upload each screenshot to S3
           const screenshotRecords = [];
           for (const result of results) {
-            const fileKey = `screenshots/${ctx.user.id}/${job.id}/${result.presetKey}-${nanoid(8)}.png`;
+            const fileKey = `screenshots/${job.id}/${result.presetKey}-${nanoid(8)}.png`;
             const { url: fileUrl } = await storagePut(fileKey, result.buffer, result.mimeType);
 
             const record = await createScreenshot({
               jobId: job.id,
-              userId: ctx.user.id,
               presetKey: result.presetKey,
               width: result.width,
               height: result.height,
@@ -115,24 +106,21 @@ export const appRouter = router({
         }
       }),
 
-    // Get job details with screenshots
-    getJob: protectedProcedure
+    getJob: publicProcedure
       .input(z.object({ jobId: z.number() }))
-      .query(async ({ ctx, input }) => {
+      .query(async ({ input }) => {
         const job = await getCaptureJobById(input.jobId);
-        if (!job || job.userId !== ctx.user.id) {
+        if (!job) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Job not found" });
         }
         const jobScreenshots = await getScreenshotsByJobId(job.id);
         return { ...job, screenshots: jobScreenshots };
       }),
 
-    // Get capture history
-    history: protectedProcedure
+    history: publicProcedure
       .input(z.object({ limit: z.number().min(1).max(100).default(50) }).optional())
-      .query(async ({ ctx, input }) => {
-        const jobs = await getCaptureJobsByUser(ctx.user.id, input?.limit ?? 50);
-        // For each job, get screenshot count
+      .query(async ({ input }) => {
+        const jobs = await getAllCaptureJobs(input?.limit ?? 50);
         const jobsWithCounts = await Promise.all(
           jobs.map(async (job) => {
             const jobScreenshots = await getScreenshotsByJobId(job.id);
@@ -146,12 +134,11 @@ export const appRouter = router({
         return jobsWithCounts;
       }),
 
-    // Analyze a screenshot with LLM vision
-    analyze: protectedProcedure
+    analyze: publicProcedure
       .input(z.object({ screenshotId: z.number() }))
-      .mutation(async ({ ctx, input }) => {
+      .mutation(async ({ input }) => {
         const screenshot = await getScreenshotById(input.screenshotId);
-        if (!screenshot || screenshot.userId !== ctx.user.id) {
+        if (!screenshot) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Screenshot not found" });
         }
 
@@ -249,16 +236,14 @@ Return as JSON with keys: description, focalPoint {x, y}, cropSuggestions [{form
         }
       }),
 
-    // Delete a job and its screenshots
-    deleteJob: protectedProcedure
+    deleteJob: publicProcedure
       .input(z.object({ jobId: z.number() }))
-      .mutation(async ({ ctx, input }) => {
+      .mutation(async ({ input }) => {
         const job = await getCaptureJobById(input.jobId);
-        if (!job || job.userId !== ctx.user.id) {
+        if (!job) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Job not found" });
         }
-        // We don't delete from S3 for now, just mark as deleted or we could add soft delete
-        // For simplicity, we'll keep the records but this endpoint exists for future use
+        await deleteCaptureJob(input.jobId);
         return { success: true };
       }),
   }),
