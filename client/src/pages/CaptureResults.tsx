@@ -72,21 +72,14 @@ function ScreenshotCard({
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
-  const handleDownload = async () => {
-    try {
-      const response = await fetch(screenshot.fileUrl);
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `screenshot-${screenshot.presetKey}-${screenshot.width}x${screenshot.height}.png`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } catch {
-      toast.error("Download failed");
-    }
+  const handleDownload = () => {
+    // Use server-side proxy to avoid CORS issues with S3 URLs
+    const a = document.createElement("a");
+    a.href = `/api/download/${screenshot.id}`;
+    a.download = `screenshot-${screenshot.presetKey}-${screenshot.width}x${screenshot.height}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   };
 
   const aspectRatio = screenshot.width / screenshot.height;

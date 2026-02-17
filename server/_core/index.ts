@@ -8,6 +8,7 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import zipRouter from "../zipRoute";
+import downloadRouter from "../downloadRoute";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -36,8 +37,9 @@ async function startServer() {
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
-  // ZIP download route
+  // Download routes
   app.use(zipRouter);
+  app.use(downloadRouter);
   // tRPC API
   app.use(
     "/api/trpc",
