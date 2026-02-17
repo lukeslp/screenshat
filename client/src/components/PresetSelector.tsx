@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Check } from "lucide-react";
 import { SOCIAL_PRESETS, HIGHRES_PRESETS, type ScreenshotPreset } from "@shared/presets";
 import {
   Facebook,
@@ -44,10 +44,16 @@ function PresetCard({
               : "border-border/60 bg-card/50 hover:bg-card"
           }`}
         >
-          <Checkbox
-            checked={selected}
-            className="pointer-events-none shrink-0"
-          />
+          <div
+            className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] border shadow-xs transition-shadow ${
+              selected
+                ? "border-primary bg-primary text-primary-foreground"
+                : "border-input bg-transparent"
+            }`}
+            aria-hidden="true"
+          >
+            {selected && <Check className="h-3.5 w-3.5" />}
+          </div>
           <div className="flex items-center gap-2.5 min-w-0">
             <Icon
               className={`h-4 w-4 shrink-0 ${

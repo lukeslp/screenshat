@@ -18,3 +18,4 @@
 - [x] Dark theme with elegant aesthetic
 - [x] Responsive design for mobile
 - [x] Vitest tests for backend routes
+- [x] Fix nested button HTML validation error (button inside button)
