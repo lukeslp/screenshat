@@ -141,7 +141,6 @@ describe("Wait Strategies", () => {
 
 describe("Router input validation", () => {
   it("should validate URL format", () => {
-    // Test URL validation logic
     const validUrls = [
       "https://example.com",
       "https://dr.eamer.dev/datavis/interactive/steam/",
@@ -163,12 +162,9 @@ describe("Router input validation", () => {
       if (url === "") {
         expect(url.trim().length).toBe(0);
       } else {
-        // Some of these may or may not throw depending on the URL parser
-        // The important thing is our validation catches them
         try {
           new URL(url);
         } catch {
-          // Expected for invalid URLs
           expect(true).toBe(true);
         }
       }
@@ -202,12 +198,33 @@ describe("Router input validation", () => {
   });
 });
 
+describe("Database helpers (public access)", () => {
+  it("should export all required db functions", async () => {
+    const db = await import("./db");
+    expect(typeof db.createCaptureJob).toBe("function");
+    expect(typeof db.updateCaptureJobStatus).toBe("function");
+    expect(typeof db.getAllCaptureJobs).toBe("function");
+    expect(typeof db.getCaptureJobById).toBe("function");
+    expect(typeof db.deleteCaptureJob).toBe("function");
+    expect(typeof db.createScreenshot).toBe("function");
+    expect(typeof db.getScreenshotsByJobId).toBe("function");
+    expect(typeof db.getScreenshotById).toBe("function");
+    expect(typeof db.updateScreenshotAnalysis).toBe("function");
+  });
+});
+
+describe("Screenshot Service", () => {
+  it("should export captureScreenshots and closeBrowser", async () => {
+    const mod = await import("./screenshotService");
+    expect(typeof mod.captureScreenshots).toBe("function");
+    expect(typeof mod.closeBrowser).toBe("function");
+  });
+});
+
 describe("tRPC router structure", () => {
   it("should export appRouter with expected procedures", async () => {
     const { appRouter } = await import("./routers");
     expect(appRouter).toBeDefined();
-
-    // Check that the router has the expected shape
     const routerDef = appRouter._def;
     expect(routerDef).toBeDefined();
   });

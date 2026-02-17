@@ -1,21 +1,25 @@
 # ScreenShotter TODO
 
-- [x] Database schema for screenshots and capture jobs
-- [x] Install and configure Playwright for server-side screenshot capture
-- [x] Backend screenshot service with Playwright (configurable viewport, wait strategies)
-- [x] tRPC routes for capture, history, and analysis
-- [x] URL input form with validation
-- [x] Preset screenshot dimensions for social media (OG, Twitter, Instagram, Pinterest, LinkedIn)
-- [x] High-resolution capture presets (2K, 4K, 8K, 16K)
-- [x] Intelligent page load detection (network idle, fonts, dynamic content)
-- [x] Custom wait selector option for pages with specific loading indicators
-- [x] Batch screenshot generation for all presets in one request
-- [x] Preview gallery showing all captured screenshots with dimensions labeled
-- [x] Individual download buttons for each screenshot
-- [x] Bulk ZIP download for all captures
-- [x] Screenshot history with URL, timestamp, and quick re-capture
-- [x] LLM vision analysis for crop region suggestions
+- [x] Database schema (captureJobs, screenshots tables)
+- [x] Playwright screenshot service with intelligent page load detection
+- [x] Backend tRPC routes for capture, history, analysis
+- [x] Shared presets definition (7 social + 4 high-res)
+- [x] Frontend: URL input form with validation
+- [x] Frontend: Preset selector with select all/deselect
+- [x] Frontend: Advanced options (wait strategy, custom selector, extra wait)
+- [x] Frontend: Capture results page with preview gallery
+- [x] Frontend: Individual download buttons per screenshot
+- [x] Frontend: Bulk ZIP download
+- [x] Frontend: Screenshot history page
+- [x] Frontend: Re-capture from history
+- [x] LLM vision analysis with crop suggestions
 - [x] Dark theme with elegant aesthetic
-- [x] Responsive design for mobile
-- [x] Vitest tests for backend routes
+- [x] Vitest test suite
 - [x] Fix nested button HTML validation error (button inside button)
+- [x] Remove all authentication requirements from backend routes
+- [x] Make all tRPC procedures public (no protectedProcedure)
+- [x] Remove auth from ZIP download route
+- [x] Rebuild frontend as minimalist personal tool (no sign-in UI, no navbar auth)
+- [x] Clean minimalist aesthetic - focused, no clutter
+- [x] Remove history user-scoping (single-user tool)
+- [x] Update tests for public routes

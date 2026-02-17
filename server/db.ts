@@ -90,7 +90,7 @@ export async function getUserByOpenId(openId: string) {
 
 // ---- Capture Jobs ----
 
-export async function createCaptureJob(data: InsertCaptureJob) {
+export async function createCaptureJob(data: Omit<InsertCaptureJob, "userId">) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   const result = await db.insert(captureJobs).values(data);
@@ -109,10 +109,10 @@ export async function updateCaptureJobStatus(id: number, status: "pending" | "pr
   await db.update(captureJobs).set(updateData).where(eq(captureJobs.id, id));
 }
 
-export async function getCaptureJobsByUser(userId: number, limit = 50) {
+export async function getAllCaptureJobs(limit = 50) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  return db.select().from(captureJobs).where(eq(captureJobs.userId, userId)).orderBy(desc(captureJobs.createdAt)).limit(limit);
+  return db.select().from(captureJobs).orderBy(desc(captureJobs.createdAt)).limit(limit);
 }
 
 export async function getCaptureJobById(id: number) {
@@ -122,9 +122,17 @@ export async function getCaptureJobById(id: number) {
   return rows[0] ?? null;
 }
 
+export async function deleteCaptureJob(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  // Delete screenshots first, then the job
+  await db.delete(screenshots).where(eq(screenshots.jobId, id));
+  await db.delete(captureJobs).where(eq(captureJobs.id, id));
+}
+
 // ---- Screenshots ----
 
-export async function createScreenshot(data: InsertScreenshot) {
+export async function createScreenshot(data: Omit<InsertScreenshot, "userId">) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   const result = await db.insert(screenshots).values(data);
