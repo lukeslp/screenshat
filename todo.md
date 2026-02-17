@@ -23,3 +23,4 @@
 - [x] Clean minimalist aesthetic - focused, no clutter
 - [x] Remove history user-scoping (single-user tool)
 - [x] Update tests for public routes
+- [x] Fix Playwright browser executable not found in deployment (use system chromium or auto-install)
