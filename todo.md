@@ -24,3 +24,6 @@
 - [x] Remove history user-scoping (single-user tool)
 - [x] Update tests for public routes
 - [x] Fix Playwright browser executable not found in deployment (use system chromium or auto-install)
+- [x] Fix individual screenshot download failing (CORS issue with S3 URLs)
+- [x] Add server-side download proxy route for individual screenshots
+- [x] Ensure bulk ZIP download also works correctly
