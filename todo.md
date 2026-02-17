@@ -1,0 +1,20 @@
+# ScreenShotter TODO
+
+- [x] Database schema for screenshots and capture jobs
+- [x] Install and configure Playwright for server-side screenshot capture
+- [x] Backend screenshot service with Playwright (configurable viewport, wait strategies)
+- [x] tRPC routes for capture, history, and analysis
+- [x] URL input form with validation
+- [x] Preset screenshot dimensions for social media (OG, Twitter, Instagram, Pinterest, LinkedIn)
+- [x] High-resolution capture presets (2K, 4K, 8K, 16K)
+- [x] Intelligent page load detection (network idle, fonts, dynamic content)
+- [x] Custom wait selector option for pages with specific loading indicators
+- [x] Batch screenshot generation for all presets in one request
+- [x] Preview gallery showing all captured screenshots with dimensions labeled
+- [x] Individual download buttons for each screenshot
+- [x] Bulk ZIP download for all captures
+- [x] Screenshot history with URL, timestamp, and quick re-capture
+- [x] LLM vision analysis for crop region suggestions
+- [x] Dark theme with elegant aesthetic
+- [x] Responsive design for mobile
+- [x] Vitest tests for backend routes

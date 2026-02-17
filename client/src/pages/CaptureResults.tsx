@@ -1,0 +1,471 @@
+import { useAuth } from "@/_core/hooks/useAuth";
+import { trpc } from "@/lib/trpc";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import Navbar from "@/components/Navbar";
+import { PRESET_MAP } from "@shared/presets";
+import {
+  ArrowLeft,
+  Download,
+  ExternalLink,
+  Eye,
+  Loader2,
+  PackageOpen,
+  Sparkles,
+  Check,
+  AlertCircle,
+  Camera,
+  Info,
+} from "lucide-react";
+import { useState } from "react";
+import { Link, useParams } from "wouter";
+import { toast } from "sonner";
+
+interface AnalysisResult {
+  description: string;
+  focalPoint: { x: number; y: number };
+  cropSuggestions: Array<{
+    format: string;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }>;
+  qualityScore: number;
+  suggestions: string[];
+}
+
+function ScreenshotCard({
+  screenshot,
+  onAnalyze,
+  isAnalyzing,
+}: {
+  screenshot: {
+    id: number;
+    presetKey: string;
+    width: number;
+    height: number;
+    fileUrl: string;
+    fileSizeBytes: number | null;
+    analysisResult: Record<string, unknown> | null;
+  };
+  onAnalyze: (id: number) => void;
+  isAnalyzing: boolean;
+}) {
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [analysisOpen, setAnalysisOpen] = useState(false);
+  const preset = PRESET_MAP[screenshot.presetKey];
+  const analysis = screenshot.analysisResult as AnalysisResult | null;
+
+  const formatBytes = (bytes: number | null) => {
+    if (!bytes) return "—";
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  const handleDownload = async () => {
+    try {
+      const response = await fetch(screenshot.fileUrl);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `screenshot-${screenshot.presetKey}-${screenshot.width}x${screenshot.height}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error("Download failed");
+    }
+  };
+
+  // Calculate aspect ratio for the thumbnail container
+  const aspectRatio = screenshot.width / screenshot.height;
+  const isPortrait = aspectRatio < 1;
+  const isSquare = Math.abs(aspectRatio - 1) < 0.1;
+
+  return (
+    <>
+      <Card className="group border-border/50 bg-card/60 hover:border-border/80 hover:bg-card/80 transition-all overflow-hidden">
+        <div
+          className={`relative bg-black/20 overflow-hidden ${
+            isPortrait
+              ? "aspect-[3/4]"
+              : isSquare
+                ? "aspect-square"
+                : "aspect-video"
+          }`}
+        >
+          <img
+            src={screenshot.fileUrl}
+            alt={`${preset?.label || screenshot.presetKey} screenshot`}
+            className="w-full h-full object-cover object-top"
+            loading="lazy"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="absolute bottom-0 left-0 right-0 p-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <Button
+              size="sm"
+              variant="secondary"
+              className="h-8 gap-1.5 text-xs bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20"
+              onClick={() => setPreviewOpen(true)}
+            >
+              <Eye className="h-3.5 w-3.5" />
+              Preview
+            </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              className="h-8 gap-1.5 text-xs bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20"
+              onClick={handleDownload}
+            >
+              <Download className="h-3.5 w-3.5" />
+              Download
+            </Button>
+          </div>
+          {analysis && (
+            <div className="absolute top-2 right-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => setAnalysisOpen(true)}
+                    className="h-7 w-7 rounded-full bg-primary/80 backdrop-blur-sm flex items-center justify-center text-white text-xs font-bold shadow-lg"
+                  >
+                    {analysis.qualityScore}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>Quality Score: {analysis.qualityScore}/10</TooltipContent>
+              </Tooltip>
+            </div>
+          )}
+        </div>
+        <CardContent className="p-3 space-y-2">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-semibold">{preset?.label || screenshot.presetKey}</h3>
+              <p className="text-xs text-muted-foreground font-mono">
+                {screenshot.width} x {screenshot.height}
+              </p>
+            </div>
+            <div className="flex items-center gap-1">
+              <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-mono">
+                {preset?.aspectRatio || "—"}
+              </Badge>
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                {formatBytes(screenshot.fileSizeBytes)}
+              </Badge>
+            </div>
+          </div>
+          <div className="flex gap-1.5">
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 flex-1 text-xs gap-1"
+              onClick={handleDownload}
+            >
+              <Download className="h-3 w-3" />
+              Download
+            </Button>
+            <Button
+              size="sm"
+              variant={analysis ? "secondary" : "outline"}
+              className="h-7 text-xs gap-1 px-2"
+              onClick={() => {
+                if (analysis) {
+                  setAnalysisOpen(true);
+                } else {
+                  onAnalyze(screenshot.id);
+                }
+              }}
+              disabled={isAnalyzing}
+            >
+              {isAnalyzing ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : analysis ? (
+                <>
+                  <Check className="h-3 w-3" />
+                  Analysis
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-3 w-3" />
+                  Analyze
+                </>
+              )}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Full Preview Dialog */}
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="max-w-[90vw] max-h-[90vh] p-0 overflow-hidden bg-black/95">
+          <DialogHeader className="absolute top-0 left-0 right-0 z-10 p-4 bg-gradient-to-b from-black/80 to-transparent">
+            <DialogTitle className="text-white text-sm font-medium">
+              {preset?.label || screenshot.presetKey} — {screenshot.width} x{" "}
+              {screenshot.height}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex items-center justify-center p-4 pt-14 max-h-[90vh] overflow-auto">
+            <img
+              src={screenshot.fileUrl}
+              alt="Full preview"
+              className="max-w-full max-h-[80vh] object-contain rounded-md"
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Analysis Dialog */}
+      <Dialog open={analysisOpen} onOpenChange={setAnalysisOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-primary" />
+              AI Analysis — {preset?.label || screenshot.presetKey}
+            </DialogTitle>
+          </DialogHeader>
+          {analysis && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/5 border border-primary/10">
+                <div className="text-2xl font-bold text-primary">
+                  {analysis.qualityScore}
+                  <span className="text-sm font-normal text-muted-foreground">/10</span>
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Quality Score</p>
+                  <p className="text-xs text-muted-foreground">
+                    Focal point: {Math.round(analysis.focalPoint.x)}%,{" "}
+                    {Math.round(analysis.focalPoint.y)}%
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-sm font-semibold mb-1.5">Description</h4>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {analysis.description}
+                </p>
+              </div>
+
+              {analysis.suggestions.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold mb-1.5">Suggestions</h4>
+                  <ul className="space-y-1.5">
+                    {analysis.suggestions.map((s, i) => (
+                      <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                        <Info className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />
+                        {s}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {analysis.cropSuggestions.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold mb-1.5">Crop Regions</h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    {analysis.cropSuggestions.map((crop, i) => (
+                      <div
+                        key={i}
+                        className="text-xs p-2 rounded-md bg-secondary/50 border border-border/50"
+                      >
+                        <span className="font-medium">{crop.format}</span>
+                        <span className="text-muted-foreground block font-mono mt-0.5">
+                          {Math.round(crop.x)},{Math.round(crop.y)} → {Math.round(crop.width)}x
+                          {Math.round(crop.height)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
+export default function CaptureResults() {
+  useAuth({ redirectOnUnauthenticated: true });
+  const params = useParams<{ jobId: string }>();
+  const jobId = parseInt(params.jobId || "0");
+
+  const { data: job, isLoading, error } = trpc.capture.getJob.useQuery(
+    { jobId },
+    { enabled: jobId > 0, refetchOnWindowFocus: false }
+  );
+
+  const analyzeMutation = trpc.capture.analyze.useMutation({
+    onError: (err) => toast.error(err.message),
+  });
+
+  const utils = trpc.useUtils();
+  const [analyzingIds, setAnalyzingIds] = useState<number[]>([]);
+
+  const handleAnalyze = async (screenshotId: number) => {
+    setAnalyzingIds(prev => [...prev, screenshotId]);
+    try {
+      await analyzeMutation.mutateAsync({ screenshotId });
+      await utils.capture.getJob.invalidate({ jobId });
+      toast.success("Analysis complete");
+    } finally {
+      setAnalyzingIds(prev => prev.filter(id => id !== screenshotId));
+    }
+  };
+
+  const handleDownloadAll = async () => {
+    if (!job?.screenshots) return;
+    try {
+      const a = document.createElement("a");
+      a.href = `/api/download-zip/${jobId}`;
+      a.download = `screenshots-${jobId}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      toast.success("ZIP download started");
+    } catch {
+      toast.error("Download failed");
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-1 container py-8">
+          <div className="max-w-6xl mx-auto space-y-6">
+            <Skeleton className="h-8 w-64" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Skeleton key={i} className="aspect-video rounded-xl" />
+              ))}
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (error || !job) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-1 container py-16">
+          <div className="max-w-md mx-auto text-center space-y-4">
+            <AlertCircle className="h-12 w-12 text-destructive mx-auto" />
+            <h2 className="text-xl font-semibold">Job not found</h2>
+            <p className="text-sm text-muted-foreground">
+              {error?.message || "This capture job doesn't exist or you don't have access."}
+            </p>
+            <Link href="/">
+              <Button variant="outline" className="gap-2">
+                <ArrowLeft className="h-4 w-4" />
+                Back to home
+              </Button>
+            </Link>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      <Navbar />
+      <main className="flex-1 container py-8">
+        <div className="max-w-6xl mx-auto space-y-6">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-3">
+                <Link href="/">
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <ArrowLeft className="h-4 w-4" />
+                  </Button>
+                </Link>
+                <h1 className="text-2xl font-bold tracking-tight">Capture Results</h1>
+                <Badge
+                  variant={job.status === "completed" ? "default" : "destructive"}
+                  className="text-xs"
+                >
+                  {job.status}
+                </Badge>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground ml-11">
+                <ExternalLink className="h-3.5 w-3.5" />
+                <a
+                  href={job.url as string}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-foreground transition-colors font-mono text-xs truncate max-w-md"
+                >
+                  {job.url as string}
+                </a>
+                <span className="text-border">|</span>
+                <span className="text-xs">
+                  {job.screenshots.length} screenshot{job.screenshots.length !== 1 ? "s" : ""}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex gap-2 ml-11 sm:ml-0">
+              <Link href="/">
+                <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+                  <Camera className="h-3.5 w-3.5" />
+                  New Capture
+                </Button>
+              </Link>
+              {job.screenshots.length > 0 && (
+                <Button
+                  size="sm"
+                  className="gap-1.5 text-xs"
+                  onClick={handleDownloadAll}
+                >
+                  <PackageOpen className="h-3.5 w-3.5" />
+                  Download All
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* Screenshot Grid */}
+          {job.screenshots.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {job.screenshots.map(ss => (
+                <ScreenshotCard
+                  key={ss.id}
+                  screenshot={ss}
+                  onAnalyze={handleAnalyze}
+                  isAnalyzing={analyzingIds.includes(ss.id)}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-16">
+              <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold">No screenshots captured</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                The capture may have failed. Try again with different settings.
+              </p>
+            </div>
+          )}
+        </div>
+      </main>
+    </div>
+  );
+}
