@@ -1,11 +1,10 @@
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, captureJobs, screenshots, type InsertCaptureJob, type InsertScreenshot } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
-// Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
@@ -89,4 +88,66 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+// ---- Capture Jobs ----
+
+export async function createCaptureJob(data: InsertCaptureJob) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(captureJobs).values(data);
+  const id = result[0].insertId;
+  const rows = await db.select().from(captureJobs).where(eq(captureJobs.id, id)).limit(1);
+  return rows[0];
+}
+
+export async function updateCaptureJobStatus(id: number, status: "pending" | "processing" | "completed" | "failed", errorMessage?: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const updateData: Record<string, unknown> = { status };
+  if (errorMessage !== undefined) {
+    updateData.errorMessage = errorMessage;
+  }
+  await db.update(captureJobs).set(updateData).where(eq(captureJobs.id, id));
+}
+
+export async function getCaptureJobsByUser(userId: number, limit = 50) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.select().from(captureJobs).where(eq(captureJobs.userId, userId)).orderBy(desc(captureJobs.createdAt)).limit(limit);
+}
+
+export async function getCaptureJobById(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const rows = await db.select().from(captureJobs).where(eq(captureJobs.id, id)).limit(1);
+  return rows[0] ?? null;
+}
+
+// ---- Screenshots ----
+
+export async function createScreenshot(data: InsertScreenshot) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(screenshots).values(data);
+  const id = result[0].insertId;
+  const rows = await db.select().from(screenshots).where(eq(screenshots.id, id)).limit(1);
+  return rows[0];
+}
+
+export async function getScreenshotsByJobId(jobId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.select().from(screenshots).where(eq(screenshots.jobId, jobId));
+}
+
+export async function getScreenshotById(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const rows = await db.select().from(screenshots).where(eq(screenshots.id, id)).limit(1);
+  return rows[0] ?? null;
+}
+
+export async function updateScreenshotAnalysis(id: number, analysisResult: Record<string, unknown>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(screenshots).set({ analysisResult }).where(eq(screenshots.id, id));
+}

@@ -1,17 +1,7 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, json, bigint } from "drizzle-orm/mysql-core";
 
-/**
- * Core user table backing auth flow.
- * Extend this file with additional tables as your product grows.
- * Columns use camelCase to match both database fields and generated types.
- */
 export const users = mysqlTable("users", {
-  /**
-   * Surrogate primary key. Auto-incremented numeric value managed by the database.
-   * Use this for relations between tables.
-   */
   id: int("id").autoincrement().primaryKey(),
-  /** Manus OAuth identifier (openId) returned from the OAuth callback. Unique per user. */
   openId: varchar("openId", { length: 64 }).notNull().unique(),
   name: text("name"),
   email: varchar("email", { length: 320 }),
@@ -25,4 +15,36 @@ export const users = mysqlTable("users", {
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
-// TODO: Add your tables here
+export const captureJobs = mysqlTable("captureJobs", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").references(() => users.id),
+  url: text("url").notNull(),
+  status: mysqlEnum("status", ["pending", "processing", "completed", "failed"]).default("pending").notNull(),
+  presets: json("presets").$type<string[]>().notNull(),
+  waitStrategy: varchar("waitStrategy", { length: 64 }).default("networkidle"),
+  customSelector: text("customSelector"),
+  extraWaitMs: int("extraWaitMs").default(0),
+  errorMessage: text("errorMessage"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type CaptureJob = typeof captureJobs.$inferSelect;
+export type InsertCaptureJob = typeof captureJobs.$inferInsert;
+
+export const screenshots = mysqlTable("screenshots", {
+  id: int("id").autoincrement().primaryKey(),
+  jobId: int("jobId").references(() => captureJobs.id).notNull(),
+  userId: int("userId").references(() => users.id),
+  presetKey: varchar("presetKey", { length: 64 }).notNull(),
+  width: int("width").notNull(),
+  height: int("height").notNull(),
+  fileUrl: text("fileUrl").notNull(),
+  fileKey: text("fileKey").notNull(),
+  fileSizeBytes: bigint("fileSizeBytes", { mode: "number" }),
+  analysisResult: json("analysisResult").$type<Record<string, unknown>>(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Screenshot = typeof screenshots.$inferSelect;
+export type InsertScreenshot = typeof screenshots.$inferInsert;
