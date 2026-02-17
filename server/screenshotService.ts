@@ -1,13 +1,57 @@
 import { chromium, type Browser, type Page } from "playwright";
 import { PRESET_MAP, type ScreenshotPreset, type WaitStrategy } from "../shared/presets";
+import { execSync } from "child_process";
+import fs from "fs";
 
 let browserInstance: Browser | null = null;
+
+function findChromiumExecutable(): string | undefined {
+  // Check common paths for system-installed Chromium/Chrome
+  const candidates = [
+    // System package managers
+    "/usr/bin/chromium-browser",
+    "/usr/bin/chromium",
+    "/usr/bin/google-chrome-stable",
+    "/usr/bin/google-chrome",
+    // Snap / Flatpak
+    "/snap/bin/chromium",
+    // macOS
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "/Applications/Chromium.app/Contents/MacOS/Chromium",
+  ];
+
+  for (const p of candidates) {
+    if (fs.existsSync(p)) {
+      console.log(`[ScreenshotService] Found browser at: ${p}`);
+      return p;
+    }
+  }
+
+  // Try `which` as a last resort
+  try {
+    const result = execSync("which chromium-browser || which chromium || which google-chrome", {
+      encoding: "utf-8",
+      timeout: 5000,
+    }).trim();
+    if (result) {
+      console.log(`[ScreenshotService] Found browser via which: ${result}`);
+      return result;
+    }
+  } catch {
+    // Ignore
+  }
+
+  return undefined;
+}
 
 async function getBrowser(): Promise<Browser> {
   if (browserInstance && browserInstance.isConnected()) {
     return browserInstance;
   }
-  browserInstance = await chromium.launch({
+
+  const executablePath = findChromiumExecutable();
+
+  const launchOptions: Parameters<typeof chromium.launch>[0] = {
     headless: true,
     args: [
       "--no-sandbox",
@@ -17,7 +61,32 @@ async function getBrowser(): Promise<Browser> {
       "--disable-web-security",
       "--disable-features=VizDisplayCompositor",
     ],
-  });
+  };
+
+  if (executablePath) {
+    launchOptions.executablePath = executablePath;
+  }
+
+  try {
+    browserInstance = await chromium.launch(launchOptions);
+  } catch (err) {
+    // If the default Playwright binary is missing, retry with system chromium
+    if (!executablePath) {
+      const fallback = findChromiumExecutable();
+      if (fallback) {
+        console.log(`[ScreenshotService] Retrying with system browser: ${fallback}`);
+        launchOptions.executablePath = fallback;
+        browserInstance = await chromium.launch(launchOptions);
+      } else {
+        throw new Error(
+          "No Chromium browser found. Install chromium-browser or run: npx playwright install chromium"
+        );
+      }
+    } else {
+      throw err;
+    }
+  }
+
   return browserInstance;
 }
 
