@@ -1,4 +1,3 @@
-import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Check } from "lucide-react";
 import { SOCIAL_PRESETS, HIGHRES_PRESETS, type ScreenshotPreset } from "@shared/presets";
@@ -22,6 +21,45 @@ const iconMap: Record<string, React.ElementType> = {
   monitor: Monitor,
 };
 
+function AspectFrame({
+  width,
+  height,
+  selected,
+}: {
+  width: number;
+  height: number;
+  selected: boolean;
+}) {
+  const ar = width / height;
+  const maxW = 28;
+  const maxH = 20;
+  let fw: number, fh: number;
+
+  if (ar >= 1) {
+    fw = maxW;
+    fh = Math.max(4, Math.round(maxW / ar));
+  } else {
+    fh = maxH;
+    fw = Math.max(4, Math.round(maxH * ar));
+  }
+
+  return (
+    <div
+      className="flex items-center justify-center shrink-0"
+      style={{ width: maxW + 4, height: maxH + 4 }}
+    >
+      <div
+        style={{ width: fw, height: fh }}
+        className={`rounded-[1px] transition-colors ${
+          selected
+            ? "bg-primary/20 border border-primary/60"
+            : "bg-border/40 border border-border/60"
+        }`}
+      />
+    </div>
+  );
+}
+
 function PresetCard({
   preset,
   selected,
@@ -32,51 +70,83 @@ function PresetCard({
   onToggle: () => void;
 }) {
   const Icon = iconMap[preset.icon] || Share2;
+  const isHighRes = preset.category === "highres";
+  const dpr = preset.deviceScaleFactor;
+  const cssW = Math.round(preset.width / dpr);
+  const cssH = Math.round(preset.height / dpr);
 
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <button
           onClick={onToggle}
-          className={`group relative flex items-center gap-3 rounded-lg border p-3 text-left transition-all duration-200 hover:border-primary/40 ${
+          className={`group relative flex items-center gap-2.5 rounded-md border p-2.5 text-left transition-all duration-150 ${
             selected
-              ? "border-primary/60 bg-primary/5 shadow-sm shadow-primary/5"
-              : "border-border/60 bg-card/50 hover:bg-card"
+              ? "border-primary/50 bg-primary/8 shadow-[0_0_0_1px_oklch(0.76_0.16_72/0.15)]"
+              : "border-border/50 bg-card/40 hover:border-border hover:bg-card/70"
           }`}
         >
+          {/* Checkbox */}
           <div
-            className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] border shadow-xs transition-shadow ${
+            className={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-[3px] border transition-all ${
               selected
                 ? "border-primary bg-primary text-primary-foreground"
-                : "border-input bg-transparent"
+                : "border-border/70 bg-transparent"
             }`}
             aria-hidden="true"
           >
-            {selected && <Check className="h-3.5 w-3.5" />}
+            {selected && <Check className="h-2.5 w-2.5" />}
           </div>
-          <div className="flex items-center gap-2.5 min-w-0">
-            <Icon
-              className={`h-4 w-4 shrink-0 ${
-                selected ? "text-primary" : "text-muted-foreground"
-              }`}
-            />
-            <div className="min-w-0">
-              <div className="text-sm font-medium truncate">{preset.label}</div>
-              <div className="text-xs text-muted-foreground font-mono">
-                {preset.width} x {preset.height}
-              </div>
+
+          {/* Aspect ratio frame */}
+          <AspectFrame width={preset.width} height={preset.height} selected={selected} />
+
+          {/* Label + dimensions */}
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5">
+              <Icon
+                className={`h-3 w-3 shrink-0 ${
+                  selected ? "text-primary" : "text-muted-foreground/70"
+                }`}
+              />
+              <span className="text-xs font-semibold truncate">{preset.label}</span>
             </div>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <span className="text-[10px] font-mono text-muted-foreground/80 tabular-nums">
+                {preset.width}×{preset.height}
+              </span>
+              {isHighRes && dpr > 1 && (
+                <span
+                  className={`text-[9px] font-mono px-1 py-px rounded-[3px] font-medium tabular-nums ${
+                    selected
+                      ? "bg-primary/15 text-primary"
+                      : "bg-border/40 text-muted-foreground/60"
+                  }`}
+                >
+                  {dpr}× DPR
+                </span>
+              )}
+              {!isHighRes && (
+                <span className="text-[9px] font-mono text-muted-foreground/40">
+                  {preset.aspectRatio}
+                </span>
+              )}
+            </div>
+            {isHighRes && dpr > 1 && (
+              <div className="text-[9px] font-mono text-muted-foreground/40 mt-0.5 tabular-nums">
+                viewport {cssW}×{cssH}
+              </div>
+            )}
           </div>
-          <Badge
-            variant="outline"
-            className="ml-auto shrink-0 text-[10px] px-1.5 py-0 font-mono opacity-60"
-          >
-            {preset.aspectRatio}
-          </Badge>
         </button>
       </TooltipTrigger>
-      <TooltipContent side="top" className="text-xs">
-        {preset.description}
+      <TooltipContent side="top" className="text-xs max-w-48">
+        <div>{preset.description}</div>
+        {isHighRes && dpr > 1 && (
+          <div className="text-muted-foreground mt-0.5">
+            Renders at {cssW}×{cssH} CSS viewport · {dpr}× pixel density
+          </div>
+        )}
       </TooltipContent>
     </Tooltip>
   );
@@ -110,33 +180,33 @@ export default function PresetSelector({
     }
   };
 
-  const socialAllSelected = SOCIAL_PRESETS.every(p =>
-    selectedKeys.includes(p.key)
-  );
-  const highresAllSelected = HIGHRES_PRESETS.every(p =>
-    selectedKeys.includes(p.key)
-  );
+  const socialAllSelected = SOCIAL_PRESETS.every(p => selectedKeys.includes(p.key));
+  const highresAllSelected = HIGHRES_PRESETS.every(p => selectedKeys.includes(p.key));
+  const socialCount = SOCIAL_PRESETS.filter(p => selectedKeys.includes(p.key)).length;
+  const highresCount = HIGHRES_PRESETS.filter(p => selectedKeys.includes(p.key)).length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
+      {/* Social Media */}
       <div>
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <Share2 className="h-4 w-4 text-primary" />
-            <h3 className="text-sm font-semibold">Social Media</h3>
-            <Badge variant="secondary" className="text-[10px]">
-              {SOCIAL_PRESETS.filter(p => selectedKeys.includes(p.key)).length}/
-              {SOCIAL_PRESETS.length}
-            </Badge>
+            <Share2 className="h-3.5 w-3.5 text-primary/80" />
+            <span className="text-xs font-semibold tracking-wide uppercase text-muted-foreground/80">
+              Social Media
+            </span>
+            <span className="text-[10px] font-mono text-muted-foreground/50">
+              {socialCount}/{SOCIAL_PRESETS.length}
+            </span>
           </div>
           <button
             onClick={() => selectAll(SOCIAL_PRESETS)}
-            className="text-xs text-primary hover:text-primary/80 transition-colors font-medium"
+            className="text-[10px] font-mono text-primary/70 hover:text-primary transition-colors uppercase tracking-wide"
           >
-            {socialAllSelected ? "Deselect all" : "Select all"}
+            {socialAllSelected ? "none" : "all"}
           </button>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
           {SOCIAL_PRESETS.map(preset => (
             <PresetCard
               key={preset.key}
@@ -148,24 +218,26 @@ export default function PresetSelector({
         </div>
       </div>
 
+      {/* High Resolution */}
       <div>
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <Maximize className="h-4 w-4 text-primary" />
-            <h3 className="text-sm font-semibold">High Resolution</h3>
-            <Badge variant="secondary" className="text-[10px]">
-              {HIGHRES_PRESETS.filter(p => selectedKeys.includes(p.key)).length}/
-              {HIGHRES_PRESETS.length}
-            </Badge>
+            <Maximize className="h-3.5 w-3.5 text-primary/80" />
+            <span className="text-xs font-semibold tracking-wide uppercase text-muted-foreground/80">
+              High Resolution
+            </span>
+            <span className="text-[10px] font-mono text-muted-foreground/50">
+              {highresCount}/{HIGHRES_PRESETS.length}
+            </span>
           </div>
           <button
             onClick={() => selectAll(HIGHRES_PRESETS)}
-            className="text-xs text-primary hover:text-primary/80 transition-colors font-medium"
+            className="text-[10px] font-mono text-primary/70 hover:text-primary transition-colors uppercase tracking-wide"
           >
-            {highresAllSelected ? "Deselect all" : "Select all"}
+            {highresAllSelected ? "none" : "all"}
           </button>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
           {HIGHRES_PRESETS.map(preset => (
             <PresetCard
               key={preset.key}
