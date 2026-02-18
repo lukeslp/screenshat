@@ -17,7 +17,7 @@ import {
   updateScreenshotAnalysis,
   deleteCaptureJob,
 } from "./db";
-import { invokeLLM } from "./_core/llm";
+import { analyzeWithVision } from "./_core/llm";
 import { nanoid } from "nanoid";
 import { TRPCError } from "@trpc/server";
 
