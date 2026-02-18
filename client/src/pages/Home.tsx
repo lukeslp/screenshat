@@ -95,7 +95,7 @@ export default function Home() {
       <Navbar />
 
       <main className="flex-1 container py-8 md:py-12">
-        <div className="max-w-2xl mx-auto space-y-6">
+        <div className="max-w-2xl mx-auto space-y-5">
           {/* URL Input */}
           <div className="space-y-2">
             <Label htmlFor="url" className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
