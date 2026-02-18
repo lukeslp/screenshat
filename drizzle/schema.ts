@@ -43,6 +43,7 @@ export const screenshots = mysqlTable("screenshots", {
   fileKey: text("fileKey").notNull(),
   fileSizeBytes: bigint("fileSizeBytes", { mode: "number" }),
   analysisResult: json("analysisResult").$type<Record<string, unknown>>(),
+  altText: text("altText"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
