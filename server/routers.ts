@@ -23,6 +23,10 @@ import fs from "fs";
 import path from "path";
 import { nanoid } from "nanoid";
 import { TRPCError } from "@trpc/server";
+import { storageDeleteMany } from "./storage";
+import { ENV } from "./_core/env";
+import { consumeRateLimit, getClientIp } from "./_core/rateLimit";
+import { assertSafeCaptureUrl } from "./_core/urlSafety";
 
 export const appRouter = router({
   system: systemRouter,
@@ -48,14 +52,37 @@ export const appRouter = router({
           extraWaitMs: z.number().min(0).max(30000).optional(),
         })
       )
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
+        const rateLimit = consumeRateLimit(
+          `${getClientIp(ctx.req)}:capture:start`,
+          ENV.captureStartLimit,
+          ENV.captureStartWindowMs
+        );
+        if (!rateLimit.allowed) {
+          const retryAfter = Math.ceil(rateLimit.retryAfterMs / 1000);
+          throw new TRPCError({
+            code: "TOO_MANY_REQUESTS",
+            message: `Capture rate limit exceeded. Try again in ${retryAfter} seconds.`,
+          });
+        }
+
+        let normalizedUrl: string;
+        try {
+          normalizedUrl = (await assertSafeCaptureUrl(input.url)).toString();
+        } catch (error) {
+          const message =
+            error instanceof Error
+              ? error.message
+              : "URL failed safety validation";
+          throw new TRPCError({ code: "BAD_REQUEST", message });
+        }
         const validKeys = input.presetKeys.filter(k => PRESET_MAP[k]);
         if (validKeys.length === 0) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "No valid presets selected" });
         }
 
         const job = await createCaptureJob({
-          url: input.url,
+          url: normalizedUrl,
           presets: validKeys,
           waitStrategy: input.waitStrategy,
           customSelector: input.customSelector ?? null,
@@ -66,7 +93,7 @@ export const appRouter = router({
           await updateCaptureJobStatus(job.id, "processing");
 
           const results = await captureScreenshots({
-            url: input.url,
+            url: normalizedUrl,
             presetKeys: validKeys,
             waitStrategy: input.waitStrategy,
             customSelector: input.customSelector,
@@ -139,7 +166,20 @@ export const appRouter = router({
 
     analyze: publicProcedure
       .input(z.object({ screenshotId: z.number() }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
+        const rateLimit = consumeRateLimit(
+          `${getClientIp(ctx.req)}:capture:analyze`,
+          ENV.captureAnalyzeLimit,
+          ENV.captureAnalyzeWindowMs
+        );
+        if (!rateLimit.allowed) {
+          const retryAfter = Math.ceil(rateLimit.retryAfterMs / 1000);
+          throw new TRPCError({
+            code: "TOO_MANY_REQUESTS",
+            message: `Analysis rate limit exceeded. Try again in ${retryAfter} seconds.`,
+          });
+        }
+
         const screenshot = await getScreenshotById(input.screenshotId);
         if (!screenshot) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Screenshot not found" });
@@ -235,8 +275,13 @@ Keep it under 125 characters. Return ONLY the alt text string — no quotes, no 
         if (!job) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Job not found" });
         }
+
+        const screenshots = await getScreenshotsByJobId(job.id);
+        const fileDeleteResult = await storageDeleteMany(
+          screenshots.map(screenshot => screenshot.fileKey)
+        );
         await deleteCaptureJob(input.jobId);
-        return { success: true };
+        return { success: true, fileDeleteResult };
       }),
   }),
 });

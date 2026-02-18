@@ -11,6 +11,7 @@ import { serveStatic, setupVite } from "./vite";
 import zipRouter from "../zipRoute";
 import downloadRouter from "../downloadRoute";
 import { DATA_DIR } from "../storage";
+import { startCaptureCleanupScheduler } from "./captureCleanup";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -69,6 +70,8 @@ async function startServer() {
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);
   });
+
+  startCaptureCleanupScheduler();
 }
 
 startServer().catch(console.error);
