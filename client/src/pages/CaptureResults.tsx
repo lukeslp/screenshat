@@ -236,8 +236,8 @@ function ScreenshotCard({
               <button
                 onClick={() => onGenerateAltText(screenshot.id)}
                 disabled={isGeneratingAltText}
+                aria-label={currentAltText ? "Regenerate alt text" : "Generate alt text"}
                 className="flex items-center gap-0.5 text-[9px] text-muted-foreground hover:text-primary transition-colors disabled:opacity-50"
-                title={currentAltText ? "Regenerate alt text" : "Generate alt text"}
               >
                 {isGeneratingAltText ? (
                   <Loader2 className="h-2.5 w-2.5 animate-spin" />
@@ -505,7 +505,7 @@ export default function CaptureResults() {
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <Link href="/">
-                  <button className="h-7 w-7 rounded-md flex items-center justify-center hover:bg-secondary/60 transition-colors">
+                  <button aria-label="Back to home" className="h-7 w-7 rounded-md flex items-center justify-center hover:bg-secondary/60 transition-colors">
                     <ArrowLeft className="h-3.5 w-3.5" />
                   </button>
                 </Link>
