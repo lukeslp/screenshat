@@ -18,6 +18,8 @@ import {
   deleteCaptureJob,
 } from "./db";
 import { analyzeWithVision } from "./_core/llm";
+import fs from "fs";
+import path from "path";
 import { nanoid } from "nanoid";
 import { TRPCError } from "@trpc/server";
 
@@ -152,7 +154,12 @@ export const appRouter = router({
 
 Return ONLY valid JSON with keys: description (string), focalPoint {x, y} (numbers 0-100), cropSuggestions [{format, x, y, width, height}] (numbers 0-100), qualityScore (number 1-10), suggestions (string[])`;
 
-          const content = await analyzeWithVision(screenshot.fileUrl, prompt);
+          // Read the file locally and pass as base64 so the LLM can analyze it
+          const { DATA_DIR } = await import("./storage");
+          const filePath = path.join(DATA_DIR, screenshot.fileKey);
+          const fileBuffer = await fs.promises.readFile(filePath);
+          const base64Image = `data:image/png;base64,${fileBuffer.toString("base64")}`;
+          const content = await analyzeWithVision(base64Image, prompt);
           let analysis = null;
           try {
             // Strip markdown code fences if present

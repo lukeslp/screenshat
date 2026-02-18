@@ -30,7 +30,7 @@ export async function storagePut(
 
 export async function storageGet(relKey: string): Promise<{ key: string; url: string }> {
   const key = relKey.replace(/^\/+/, "");
-  return { key, url: `/data/screenshots/${key}` };
+  return { key, url: `/screenshat/data/screenshots/${key}` };
 }
 
 export { DATA_DIR };
