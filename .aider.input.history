@@ -1,0 +1,6 @@
+
+# 2026-02-17 23:32:27.972585
++TypeScript/Express/React 19 app captures website screenshots as PNGs via Playwright. Want to add alt text: LLM-generated, user-editable, embedded in PNG file metadata for downloads. Stack: Express, tRPC, React 19, MySQL/Drizzle, local disk. Best Node.js approach for PNG metadata embedding (sharp, exiftool-vendored, pngjs, png-metadata)? Embed at capture vs rewrite on download? Which PNG chunk type for alt text (tEXt, iTXt, EXIF)? DB changes? Gotchas? Give concrete recommendation.
+
+# 2026-02-17 23:32:27.972640
++TypeScript/Express/React 19 app captures website screenshots as PNGs via Playwright. Want to add alt text: LLM-generated, user-editable, embedded in PNG file metadata for downloads. Stack: Express, tRPC, React 19, MySQL/Drizzle, local disk. Best Node.js approach for PNG metadata embedding (sharp, exiftool-vendored, pngjs, png-metadata)? Embed at capture vs rewrite on download? Which PNG chunk type for alt text (tEXt, iTXt, EXIF)? DB changes? Gotchas? Give concrete recommendation.
