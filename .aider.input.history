@@ -4,3 +4,9 @@
 
 # 2026-02-17 23:32:27.972640
 +TypeScript/Express/React 19 app captures website screenshots as PNGs via Playwright. Want to add alt text: LLM-generated, user-editable, embedded in PNG file metadata for downloads. Stack: Express, tRPC, React 19, MySQL/Drizzle, local disk. Best Node.js approach for PNG metadata embedding (sharp, exiftool-vendored, pngjs, png-metadata)? Embed at capture vs rewrite on download? Which PNG chunk type for alt text (tEXt, iTXt, EXIF)? DB changes? Gotchas? Give concrete recommendation.
+
+# 2026-02-18 00:02:30.368170
++Node.js TypeScript app needs to embed alt text into PNG files. Options: (a) sharp withMetadata/png options, (b) png-metadata npm package, (c) manual tEXt chunk writing. No sharp currently installed. Should embed at download time (rewrite buffer) or at capture time? Answer: best library + approach for PNG tEXt metadata, and whether sharp.withExif or .png() options support text chunks, or if png-metadata is simpler.
+
+# 2026-02-18 00:02:30.369200
++Node.js TypeScript app needs to embed alt text into PNG files. Options: (a) sharp withMetadata/png options, (b) png-metadata npm package, (c) manual tEXt chunk writing. No sharp currently installed. Should embed at download time (rewrite buffer) or at capture time? Answer: best library + approach for PNG tEXt metadata, and whether sharp.withExif or .png() options support text chunks, or if png-metadata is simpler.
