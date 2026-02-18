@@ -418,6 +418,21 @@ export default function CaptureResults() {
     toast.success("Analysis complete for all screenshots");
   };
 
+  const handleGenerateAltText = async (screenshotId: number) => {
+    setGeneratingAltTextIds(prev => [...prev, screenshotId]);
+    try {
+      await generateAltTextMutation.mutateAsync({ screenshotId });
+      await utils.capture.getJob.invalidate({ jobId });
+      toast.success("Alt text generated");
+    } finally {
+      setGeneratingAltTextIds(prev => prev.filter(id => id !== screenshotId));
+    }
+  };
+
+  const handleUpdateAltText = async (screenshotId: number, altText: string) => {
+    await updateAltTextMutation.mutateAsync({ screenshotId, altText });
+  };
+
   const handleDownloadAll = async () => {
     if (!job?.screenshots) return;
     try {
@@ -591,6 +606,9 @@ export default function CaptureResults() {
                   onAnalyze={handleAnalyze}
                   isAnalyzing={analyzingIds.includes(ss.id)}
                   analyzeDisabled={isAnalyzingAll}
+                  onGenerateAltText={handleGenerateAltText}
+                  onUpdateAltText={handleUpdateAltText}
+                  isGeneratingAltText={generatingAltTextIds.includes(ss.id)}
                 />
               ))}
             </div>
