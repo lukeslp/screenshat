@@ -22,8 +22,9 @@ export async function storagePut(
 
   await fs.promises.writeFile(filePath, data);
 
-  // URL will be served via /data/screenshots/<key> Express route
-  const url = `/data/screenshots/${key}`;
+  // URL includes the app base path so browser can load images correctly
+  // Caddy strips /screenshat prefix, Express serves /data/screenshots/<key>
+  const url = `/screenshat/data/screenshots/${key}`;
   return { key, url };
 }
 
