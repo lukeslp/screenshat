@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import Navbar from "@/components/Navbar";
+import ThumbnailTester from "@/components/ThumbnailTester";
 import { PRESET_MAP } from "@shared/presets";
 import {
   ArrowLeft,
@@ -47,6 +48,7 @@ function ScreenshotCard({
   screenshot,
   onAnalyze,
   isAnalyzing,
+  analyzeDisabled,
 }: {
   screenshot: {
     id: number;
@@ -59,6 +61,7 @@ function ScreenshotCard({
   };
   onAnalyze: (id: number) => void;
   isAnalyzing: boolean;
+  analyzeDisabled?: boolean;
 }) {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [analysisOpen, setAnalysisOpen] = useState(false);
@@ -73,7 +76,6 @@ function ScreenshotCard({
   };
 
   const handleDownload = () => {
-    // Use server-side proxy to avoid CORS issues with S3 URLs
     const a = document.createElement("a");
     a.href = `/api/download/${screenshot.id}`;
     a.download = `screenshot-${screenshot.presetKey}-${screenshot.width}x${screenshot.height}.png`;
@@ -179,7 +181,7 @@ function ScreenshotCard({
                   onAnalyze(screenshot.id);
                 }
               }}
-              disabled={isAnalyzing}
+              disabled={isAnalyzing || (analyzeDisabled && !analysis)}
             >
               {isAnalyzing ? (
                 <Loader2 className="h-2.5 w-2.5 animate-spin" />
@@ -223,7 +225,7 @@ function ScreenshotCard({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-sm">
               <Sparkles className="h-3.5 w-3.5 text-primary" />
-              AI Analysis — {preset?.label || screenshot.presetKey}
+              Analysis — {preset?.label || screenshot.presetKey}
             </DialogTitle>
           </DialogHeader>
           {analysis && (
@@ -303,6 +305,8 @@ export default function CaptureResults() {
 
   const utils = trpc.useUtils();
   const [analyzingIds, setAnalyzingIds] = useState<number[]>([]);
+  const [isAnalyzingAll, setIsAnalyzingAll] = useState(false);
+  const [analyzeAllProgress, setAnalyzeAllProgress] = useState(0);
 
   const handleAnalyze = async (screenshotId: number) => {
     setAnalyzingIds(prev => [...prev, screenshotId]);
@@ -313,6 +317,33 @@ export default function CaptureResults() {
     } finally {
       setAnalyzingIds(prev => prev.filter(id => id !== screenshotId));
     }
+  };
+
+  const handleAnalyzeAll = async () => {
+    if (!job?.screenshots) return;
+    const unanalyzed = job.screenshots.filter(s => !s.analysisResult);
+    if (unanalyzed.length === 0) return;
+
+    setIsAnalyzingAll(true);
+    setAnalyzeAllProgress(0);
+
+    for (let i = 0; i < unanalyzed.length; i++) {
+      const ss = unanalyzed[i];
+      setAnalyzeAllProgress(i + 1);
+      setAnalyzingIds(prev => [...prev, ss.id]);
+      try {
+        await analyzeMutation.mutateAsync({ screenshotId: ss.id });
+        await utils.capture.getJob.invalidate({ jobId });
+      } catch {
+        // continue with remaining screenshots
+      } finally {
+        setAnalyzingIds(prev => prev.filter(id => id !== ss.id));
+      }
+    }
+
+    setIsAnalyzingAll(false);
+    setAnalyzeAllProgress(0);
+    toast.success("Analysis complete for all screenshots");
   };
 
   const handleDownloadAll = async () => {
@@ -371,6 +402,9 @@ export default function CaptureResults() {
     );
   }
 
+  const analyzedCount = job.screenshots.filter(s => s.analysisResult !== null).length;
+  const unanalyzedCount = job.screenshots.length - analyzedCount;
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
@@ -392,6 +426,11 @@ export default function CaptureResults() {
                 >
                   {job.status}
                 </Badge>
+                {job.screenshots.length > 0 && (
+                  <span className="text-[10px] text-muted-foreground">
+                    {analyzedCount}/{job.screenshots.length} analyzed
+                  </span>
+                )}
               </div>
               <div className="flex items-center gap-2 text-xs text-muted-foreground ml-9">
                 <ExternalLink className="h-3 w-3" />
@@ -415,6 +454,28 @@ export default function CaptureResults() {
                   New
                 </Button>
               </Link>
+              {unanalyzedCount > 0 && !isAnalyzingAll && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 gap-1 text-[11px]"
+                  onClick={handleAnalyzeAll}
+                >
+                  <Sparkles className="h-3 w-3" />
+                  Analyze All
+                </Button>
+              )}
+              {isAnalyzingAll && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 gap-1 text-[11px]"
+                  disabled
+                >
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  Analyzing {analyzeAllProgress} / {unanalyzedCount}…
+                </Button>
+              )}
               {job.screenshots.length > 0 && (
                 <Button
                   size="sm"
@@ -428,6 +489,26 @@ export default function CaptureResults() {
             </div>
           </div>
 
+          {/* Error banner for failed jobs */}
+          {job.status === "failed" && (
+            <div className="flex items-start gap-2.5 px-3.5 py-2.5 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive">
+              <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+              <div className="min-w-0">
+                <p className="text-xs font-medium">Capture failed</p>
+                {(job as unknown as { errorMessage?: string }).errorMessage && (
+                  <p className="text-[11px] mt-0.5 opacity-80 break-words">
+                    {(job as unknown as { errorMessage?: string }).errorMessage}
+                  </p>
+                )}
+              </div>
+              <Link href={`/?url=${encodeURIComponent(job.url as string)}`} className="ml-auto shrink-0">
+                <Button variant="outline" size="sm" className="h-6 text-[10px] gap-1 border-destructive/30 text-destructive hover:bg-destructive/10">
+                  Retry
+                </Button>
+              </Link>
+            </div>
+          )}
+
           {/* Screenshot Grid */}
           {job.screenshots.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
@@ -437,6 +518,7 @@ export default function CaptureResults() {
                   screenshot={ss}
                   onAnalyze={handleAnalyze}
                   isAnalyzing={analyzingIds.includes(ss.id)}
+                  analyzeDisabled={isAnalyzingAll}
                 />
               ))}
             </div>
@@ -449,6 +531,12 @@ export default function CaptureResults() {
               </p>
             </div>
           )}
+
+          {/* Platform Preview */}
+          <ThumbnailTester
+            screenshots={job.screenshots}
+            url={job.url as string}
+          />
         </div>
       </main>
     </div>
