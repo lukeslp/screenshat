@@ -156,6 +156,7 @@ function ScreenshotCard({
                 <TooltipTrigger asChild>
                   <button
                     onClick={() => setAnalysisOpen(true)}
+                    aria-label={`Quality score ${analysis.qualityScore}/10 — view analysis`}
                     className="h-6 w-6 rounded-full bg-primary/80 backdrop-blur-sm flex items-center justify-center text-white text-[10px] font-bold shadow-lg"
                   >
                     {analysis.qualityScore}
@@ -378,6 +379,7 @@ export default function CaptureResults() {
   const [analyzingIds, setAnalyzingIds] = useState<number[]>([]);
   const [isAnalyzingAll, setIsAnalyzingAll] = useState(false);
   const [analyzeAllProgress, setAnalyzeAllProgress] = useState(0);
+  const analyzeAllTotal = useRef(0);
   const [generatingAltTextIds, setGeneratingAltTextIds] = useState<number[]>([]);
 
   const handleAnalyze = async (screenshotId: number) => {
@@ -398,6 +400,7 @@ export default function CaptureResults() {
 
     setIsAnalyzingAll(true);
     setAnalyzeAllProgress(0);
+    analyzeAllTotal.current = unanalyzed.length;
 
     for (let i = 0; i < unanalyzed.length; i++) {
       const ss = unanalyzed[i];
@@ -560,7 +563,7 @@ export default function CaptureResults() {
                   disabled
                 >
                   <Loader2 className="h-3 w-3 animate-spin" />
-                  Analyzing {analyzeAllProgress} / {unanalyzedCount}…
+                  Analyzing {analyzeAllProgress} / {analyzeAllTotal.current}…
                 </Button>
               )}
               {job.screenshots.length > 0 && (
@@ -582,9 +585,9 @@ export default function CaptureResults() {
               <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
               <div className="min-w-0">
                 <p className="text-xs font-medium">Capture failed</p>
-                {(job as unknown as { errorMessage?: string }).errorMessage && (
+                {(job as { errorMessage?: string | null } & typeof job).errorMessage && (
                   <p className="text-[11px] mt-0.5 opacity-80 break-words">
-                    {(job as unknown as { errorMessage?: string }).errorMessage}
+                    {(job as { errorMessage?: string | null } & typeof job).errorMessage}
                   </p>
                 )}
               </div>
