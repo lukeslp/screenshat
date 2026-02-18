@@ -5,7 +5,7 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import { captureScreenshots } from "./screenshotService";
-import { storagePut } from "./storage";
+import { storagePut, DATA_DIR } from "./storage";
 import {
   createCaptureJob,
   updateCaptureJobStatus,
@@ -152,11 +152,10 @@ export const appRouter = router({
 3. Suggested crop regions for different social formats (OG 1.91:1, Twitter 16:9, Instagram 1:1, Instagram 4:5, Story 9:16, Pinterest 2:3)
 4. A quality score (1-10) for how well this screenshot works as a social share image
 5. Suggestions for improvement
+6. A concise alt text string (under 125 chars) describing the page for accessibility and file metadata
 
-Return ONLY valid JSON with keys: description (string), focalPoint {x, y} (numbers 0-100), cropSuggestions [{format, x, y, width, height}] (numbers 0-100), qualityScore (number 1-10), suggestions (string[])`;
+Return ONLY valid JSON with keys: description (string), focalPoint {x, y} (numbers 0-100), cropSuggestions [{format, x, y, width, height}] (numbers 0-100), qualityScore (number 1-10), suggestions (string[]), altText (string)`;
 
-          // Read the file locally and pass as base64 so the LLM can analyze it
-          const { DATA_DIR } = await import("./storage");
           const filePath = path.join(DATA_DIR, screenshot.fileKey);
           const fileBuffer = await fs.promises.readFile(filePath);
           const base64Image = `data:image/png;base64,${fileBuffer.toString("base64")}`;
@@ -172,6 +171,10 @@ Return ONLY valid JSON with keys: description (string), focalPoint {x, y} (numbe
 
           if (analysis) {
             await updateScreenshotAnalysis(screenshot.id, analysis);
+            // Also save altText if the model returned one
+            if (analysis.altText && typeof analysis.altText === "string") {
+              await updateScreenshotAltText(screenshot.id, analysis.altText.trim());
+            }
           }
 
           return analysis;
@@ -198,7 +201,6 @@ The image is a ${screenshot.width}×${screenshot.height}px screenshot of a webpa
 Write 1-2 sentences describing what the page shows: the layout, main content, and purpose.
 Keep it under 125 characters. Return ONLY the alt text string — no quotes, no JSON, no explanation.`;
 
-          const { DATA_DIR } = await import("./storage");
           const filePath = path.join(DATA_DIR, screenshot.fileKey);
           const fileBuffer = await fs.promises.readFile(filePath);
           const base64Image = `data:image/png;base64,${fileBuffer.toString("base64")}`;
