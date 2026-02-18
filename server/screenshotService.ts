@@ -184,8 +184,11 @@ export async function captureScreenshots(options: CaptureOptions): Promise<Captu
   for (const preset of sortedPresets) {
     let context;
     try {
+      // CSS viewport = pixel dimensions / DPR so content scales proportionately
+      const cssWidth = Math.round(preset.width / preset.deviceScaleFactor);
+      const cssHeight = Math.round(preset.height / preset.deviceScaleFactor);
       context = await browser.newContext({
-        viewport: { width: preset.width, height: preset.height },
+        viewport: { width: cssWidth, height: cssHeight },
         deviceScaleFactor: preset.deviceScaleFactor,
         userAgent:
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",

@@ -92,16 +92,18 @@ export const PRESETS: ScreenshotPreset[] = [
     deviceScaleFactor: 1,
   },
   // High Resolution Presets
+  // deviceScaleFactor = DPR: CSS viewport is width/DPR × height/DPR, output pixels are width × height
+  // This zooms content proportionately rather than rendering in miniature at a huge viewport.
   {
     key: "2k",
     label: "2K QHD",
     width: 2560,
     height: 1440,
     category: "highres",
-    description: "2560 x 1440 Quad HD",
+    description: "2560 × 1440 — 2× pixel density on 1280×720 viewport",
     icon: "monitor",
     aspectRatio: "16:9",
-    deviceScaleFactor: 1,
+    deviceScaleFactor: 2,
   },
   {
     key: "4k",
@@ -109,10 +111,10 @@ export const PRESETS: ScreenshotPreset[] = [
     width: 3840,
     height: 2160,
     category: "highres",
-    description: "3840 x 2160 Ultra HD",
+    description: "3840 × 2160 — 2× pixel density on 1920×1080 viewport",
     icon: "monitor",
     aspectRatio: "16:9",
-    deviceScaleFactor: 1,
+    deviceScaleFactor: 2,
   },
   {
     key: "8k",
@@ -120,10 +122,10 @@ export const PRESETS: ScreenshotPreset[] = [
     width: 7680,
     height: 4320,
     category: "highres",
-    description: "7680 x 4320 Full Ultra HD",
+    description: "7680 × 4320 — 4× pixel density on 1920×1080 viewport",
     icon: "monitor",
     aspectRatio: "16:9",
-    deviceScaleFactor: 1,
+    deviceScaleFactor: 4,
   },
   {
     key: "16k",
@@ -131,10 +133,10 @@ export const PRESETS: ScreenshotPreset[] = [
     width: 15360,
     height: 8640,
     category: "highres",
-    description: "15360 x 8640 Maximum Resolution",
+    description: "15360 × 8640 — 8× pixel density on 1920×1080 viewport",
     icon: "monitor",
     aspectRatio: "16:9",
-    deviceScaleFactor: 1,
+    deviceScaleFactor: 8,
   },
 ];
 
