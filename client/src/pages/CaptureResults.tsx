@@ -221,6 +221,46 @@ function ScreenshotCard({
               )}
             </Button>
           </div>
+
+          {/* Alt Text Section */}
+          <div className="border-t border-border/30 pt-2 space-y-1.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                <FileText className="h-2.5 w-2.5" />
+                <span className="font-medium">Alt Text</span>
+                {currentAltText && (
+                  <span className="text-[9px] text-primary/60">• embedded in download</span>
+                )}
+              </div>
+              <button
+                onClick={() => onGenerateAltText(screenshot.id)}
+                disabled={isGeneratingAltText}
+                className="flex items-center gap-0.5 text-[9px] text-muted-foreground hover:text-primary transition-colors disabled:opacity-50"
+                title={currentAltText ? "Regenerate alt text" : "Generate alt text"}
+              >
+                {isGeneratingAltText ? (
+                  <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                ) : currentAltText ? (
+                  <RotateCcw className="h-2.5 w-2.5" />
+                ) : (
+                  <Sparkles className="h-2.5 w-2.5" />
+                )}
+                {isGeneratingAltText ? "Generating…" : currentAltText ? "Regenerate" : "Generate"}
+              </button>
+            </div>
+            <Textarea
+              value={currentAltText}
+              onChange={e => handleAltTextChange(e.target.value)}
+              placeholder="Enter alt text, or click Generate…"
+              className="text-[10px] min-h-[48px] max-h-24 resize-y leading-relaxed py-1.5 px-2"
+              maxLength={500}
+            />
+            {currentAltText && (
+              <p className="text-[9px] text-muted-foreground text-right">
+                {currentAltText.length}/500 · auto-saved
+              </p>
+            )}
+          </div>
         </CardContent>
       </Card>
 
@@ -326,10 +366,19 @@ export default function CaptureResults() {
     onError: (err) => toast.error(err.message),
   });
 
+  const generateAltTextMutation = trpc.capture.generateAltText.useMutation({
+    onError: (err) => toast.error(err.message),
+  });
+
+  const updateAltTextMutation = trpc.capture.updateAltText.useMutation({
+    onError: (err) => toast.error("Failed to save alt text: " + err.message),
+  });
+
   const utils = trpc.useUtils();
   const [analyzingIds, setAnalyzingIds] = useState<number[]>([]);
   const [isAnalyzingAll, setIsAnalyzingAll] = useState(false);
   const [analyzeAllProgress, setAnalyzeAllProgress] = useState(0);
+  const [generatingAltTextIds, setGeneratingAltTextIds] = useState<number[]>([]);
 
   const handleAnalyze = async (screenshotId: number) => {
     setAnalyzingIds(prev => [...prev, screenshotId]);
