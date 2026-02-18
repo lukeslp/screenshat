@@ -5,6 +5,7 @@ import path from "path";
 import { getScreenshotsByJobId, getCaptureJobById } from "./db";
 import { PRESET_MAP } from "../shared/presets";
 import { DATA_DIR } from "./storage";
+import { embedAltText } from "./pngMeta";
 
 const zipRouter = Router();
 
@@ -51,7 +52,28 @@ zipRouter.get("/api/download-zip/:jobId", async (req, res) => {
       const name = `${preset?.label || ss.presetKey}-${ss.width}x${ss.height}.png`
         .replace(/[^a-zA-Z0-9._-]/g, "_");
 
-      archive.file(filePath, { name });
+      if (ss.altText) {
+        // Embed alt text into PNG metadata before adding to ZIP
+        const rawBuffer = await fs.promises.readFile(filePath);
+        const withMeta = embedAltText(rawBuffer, ss.altText);
+        archive.append(withMeta, { name });
+      } else {
+        archive.file(filePath, { name });
+      }
+    }
+
+    // Include an alt-text manifest in the ZIP
+    const hasAnyAltText = screenshots.some(ss => ss.altText);
+    if (hasAnyAltText) {
+      const manifest = screenshots
+        .map(ss => {
+          const preset = PRESET_MAP[ss.presetKey];
+          const name = `${preset?.label || ss.presetKey}-${ss.width}x${ss.height}.png`
+            .replace(/[^a-zA-Z0-9._-]/g, "_");
+          return `${name}: ${ss.altText ?? "(no alt text)"}`;
+        })
+        .join("\n");
+      archive.append(Buffer.from(manifest, "utf8"), { name: "alt-text.txt" });
     }
 
     await archive.finalize();

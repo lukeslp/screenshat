@@ -13,6 +13,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import Navbar from "@/components/Navbar";
 import ThumbnailTester from "@/components/ThumbnailTester";
 import { PRESET_MAP } from "@shared/presets";
+import { Textarea } from "@/components/ui/textarea";
 import {
   ArrowLeft,
   Download,
@@ -25,8 +26,10 @@ import {
   AlertCircle,
   Camera,
   Info,
+  FileText,
+  RotateCcw,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Link, useParams } from "wouter";
 import { toast } from "sonner";
 
@@ -49,6 +52,9 @@ function ScreenshotCard({
   onAnalyze,
   isAnalyzing,
   analyzeDisabled,
+  onGenerateAltText,
+  onUpdateAltText,
+  isGeneratingAltText,
 }: {
   screenshot: {
     id: number;
@@ -58,13 +64,19 @@ function ScreenshotCard({
     fileUrl: string;
     fileSizeBytes: number | null;
     analysisResult: Record<string, unknown> | null;
+    altText?: string | null;
   };
   onAnalyze: (id: number) => void;
   isAnalyzing: boolean;
   analyzeDisabled?: boolean;
+  onGenerateAltText: (id: number) => void;
+  onUpdateAltText: (id: number, text: string) => void;
+  isGeneratingAltText: boolean;
 }) {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [analysisOpen, setAnalysisOpen] = useState(false);
+  const [editedAltText, setEditedAltText] = useState<string | null>(null);
+  const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const preset = PRESET_MAP[screenshot.presetKey];
   const analysis = screenshot.analysisResult as AnalysisResult | null;
 
@@ -73,6 +85,17 @@ function ScreenshotCard({
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  // Current alt text: prefer local edit state, then DB value
+  const currentAltText = editedAltText !== null ? editedAltText : (screenshot.altText ?? "");
+
+  const handleAltTextChange = (val: string) => {
+    setEditedAltText(val);
+    if (saveTimeout.current) clearTimeout(saveTimeout.current);
+    saveTimeout.current = setTimeout(() => {
+      onUpdateAltText(screenshot.id, val);
+    }, 800);
   };
 
   const handleDownload = () => {
