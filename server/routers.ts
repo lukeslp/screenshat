@@ -184,6 +184,48 @@ Return ONLY valid JSON with keys: description (string), focalPoint {x, y} (numbe
         }
       }),
 
+    generateAltText: publicProcedure
+      .input(z.object({ screenshotId: z.number() }))
+      .mutation(async ({ input }) => {
+        const screenshot = await getScreenshotById(input.screenshotId);
+        if (!screenshot) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Screenshot not found" });
+        }
+
+        try {
+          const prompt = `Generate concise, descriptive alt text for this screenshot.
+The image is a ${screenshot.width}×${screenshot.height}px screenshot of a webpage (preset: ${screenshot.presetKey}).
+Write 1-2 sentences describing what the page shows: the layout, main content, and purpose.
+Keep it under 125 characters. Return ONLY the alt text string — no quotes, no JSON, no explanation.`;
+
+          const { DATA_DIR } = await import("./storage");
+          const filePath = path.join(DATA_DIR, screenshot.fileKey);
+          const fileBuffer = await fs.promises.readFile(filePath);
+          const base64Image = `data:image/png;base64,${fileBuffer.toString("base64")}`;
+          const altText = (await analyzeWithVision(base64Image, prompt)).trim();
+
+          await updateScreenshotAltText(screenshot.id, altText);
+          return { altText };
+        } catch (error) {
+          console.error("Alt text generation failed:", error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to generate alt text",
+          });
+        }
+      }),
+
+    updateAltText: publicProcedure
+      .input(z.object({ screenshotId: z.number(), altText: z.string().max(500) }))
+      .mutation(async ({ input }) => {
+        const screenshot = await getScreenshotById(input.screenshotId);
+        if (!screenshot) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Screenshot not found" });
+        }
+        await updateScreenshotAltText(screenshot.id, input.altText.trim() || null);
+        return { success: true };
+      }),
+
     deleteJob: publicProcedure
       .input(z.object({ jobId: z.number() }))
       .mutation(async ({ input }) => {

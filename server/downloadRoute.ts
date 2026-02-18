@@ -4,10 +4,11 @@ import path from "path";
 import { getScreenshotById } from "./db";
 import { PRESET_MAP } from "../shared/presets";
 import { DATA_DIR } from "./storage";
+import { embedAltText } from "./pngMeta";
 
 const downloadRouter = Router();
 
-// Individual screenshot download - reads from local storage
+// Individual screenshot download — embeds alt text as PNG tEXt metadata if present
 downloadRouter.get("/api/download/:screenshotId", async (req, res) => {
   try {
     const screenshotId = parseInt(req.params.screenshotId);
@@ -22,10 +23,7 @@ downloadRouter.get("/api/download/:screenshotId", async (req, res) => {
       return;
     }
 
-    // fileUrl is like /data/screenshots/screenshots/<jobId>/<preset>-<id>.png
-    // fileKey is like screenshots/<jobId>/<preset>-<id>.png
     const filePath = path.join(DATA_DIR, screenshot.fileKey);
-
     if (!fs.existsSync(filePath)) {
       res.status(404).json({ error: "File not found on disk" });
       return;
@@ -37,8 +35,16 @@ downloadRouter.get("/api/download/:screenshotId", async (req, res) => {
 
     res.setHeader("Content-Type", "image/png");
     res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
-    res.setHeader("Cache-Control", "public, max-age=86400");
-    res.sendFile(filePath);
+    res.setHeader("Cache-Control", "no-cache"); // alt text may change
+
+    if (screenshot.altText) {
+      // Embed alt text into PNG metadata on the fly
+      const rawBuffer = await fs.promises.readFile(filePath);
+      const withMeta = embedAltText(rawBuffer, screenshot.altText);
+      res.end(withMeta);
+    } else {
+      res.sendFile(filePath);
+    }
   } catch (error) {
     console.error("Download error:", error);
     if (!res.headersSent) {
