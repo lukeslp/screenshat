@@ -2,6 +2,17 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Deployment
+
+- **URL**: https://dr.eamer.dev/screenshat/
+- **Port**: 5091
+- **Service**: `sm start screenshat` / `sm restart screenshat` / `sm logs screenshat`
+- **Caddy**: `handle_path /screenshat/*` → strips prefix, forwards to port 5091
+- **DB**: MySQL `screenshat` database (drizzle ORM, auto-creates tables on `pnpm db:push`)
+- **Storage**: Local disk at `data/screenshots/` (served as `/data/screenshots/*` by Express)
+- **LLM**: Uses local api-gateway at `http://localhost:5200` with `API_GATEWAY_KEY`
+- **Vite base**: `/screenshat/` — assets load correctly through Caddy prefix stripping
+
 ## Commands
 
 ```bash
