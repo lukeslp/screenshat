@@ -159,3 +159,9 @@ export async function updateScreenshotAnalysis(id: number, analysisResult: Recor
   if (!db) throw new Error("Database not available");
   await db.update(screenshots).set({ analysisResult }).where(eq(screenshots.id, id));
 }
+
+export async function updateScreenshotAltText(id: number, altText: string | null) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(screenshots).set({ altText }).where(eq(screenshots.id, id));
+}

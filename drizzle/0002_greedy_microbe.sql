@@ -1,0 +1,1 @@
+ALTER TABLE `screenshots` ADD `altText` text;
