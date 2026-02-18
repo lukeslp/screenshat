@@ -198,7 +198,7 @@ export default function History() {
                                 isFailed ? "text-primary font-medium" : ""
                               }`}
                               onClick={e => e.stopPropagation()}
-                              title="Re-capture"
+                              aria-label={isFailed ? "Retry capture" : "Re-capture"}
                             >
                               <RefreshCw className="h-3 w-3" />
                               {isFailed && <span>Retry</span>}
@@ -210,7 +210,7 @@ export default function History() {
                               e.stopPropagation();
                               setDeleteTarget({ id: job.id, count: job.screenshotCount });
                             }}
-                            title="Delete"
+                            aria-label="Delete capture"
                             disabled={deleteMutation.isPending}
                           >
                             <Trash2 className="h-3 w-3" />
