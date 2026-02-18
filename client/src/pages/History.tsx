@@ -104,11 +104,19 @@ export default function History() {
                 return (
                   <Card
                     key={job.id}
+                    role={isCompleted ? "button" : undefined}
+                    tabIndex={isCompleted ? 0 : undefined}
                     className={`group border-border/40 bg-card/50 hover:border-border/60 transition-all ${
                       isCompleted ? "cursor-pointer" : "cursor-default"
                     } ${isFailed ? "border-destructive/20 bg-destructive/5" : ""}`}
                     onClick={() => {
                       if (isCompleted) setLocation(`/results/${job.id}`);
+                    }}
+                    onKeyDown={e => {
+                      if (isCompleted && (e.key === "Enter" || e.key === " ")) {
+                        e.preventDefault();
+                        setLocation(`/results/${job.id}`);
+                      }
                     }}
                   >
                     <CardContent className="p-3">
@@ -238,8 +246,9 @@ export default function History() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this capture?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will remove all {deleteTarget?.count ?? 0} screenshot
-              {(deleteTarget?.count ?? 0) !== 1 ? "s" : ""} and cannot be undone.
+              {(deleteTarget?.count ?? 0) > 0
+                ? `This will remove all ${deleteTarget!.count} screenshot${deleteTarget!.count !== 1 ? "s" : ""} and cannot be undone.`
+                : "This will delete this capture record and cannot be undone."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
