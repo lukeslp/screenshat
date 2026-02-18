@@ -15,6 +15,7 @@ import {
   getScreenshotsByJobId,
   getScreenshotById,
   updateScreenshotAnalysis,
+  updateScreenshotAltText,
   deleteCaptureJob,
 } from "./db";
 import { analyzeWithVision } from "./_core/llm";
