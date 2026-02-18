@@ -1,10 +1,13 @@
 import { Router } from "express";
+import fs from "fs";
+import path from "path";
 import { getScreenshotById } from "./db";
 import { PRESET_MAP } from "../shared/presets";
+import { DATA_DIR } from "./storage";
 
 const downloadRouter = Router();
 
-// Individual screenshot download - proxies the S3 file through the server
+// Individual screenshot download - reads from local storage
 downloadRouter.get("/api/download/:screenshotId", async (req, res) => {
   try {
     const screenshotId = parseInt(req.params.screenshotId);
@@ -19,23 +22,23 @@ downloadRouter.get("/api/download/:screenshotId", async (req, res) => {
       return;
     }
 
-    // Fetch the image from S3
-    const response = await fetch(screenshot.fileUrl);
-    if (!response.ok) {
-      res.status(502).json({ error: "Failed to fetch screenshot from storage" });
+    // fileUrl is like /data/screenshots/screenshots/<jobId>/<preset>-<id>.png
+    // fileKey is like screenshots/<jobId>/<preset>-<id>.png
+    const filePath = path.join(DATA_DIR, screenshot.fileKey);
+
+    if (!fs.existsSync(filePath)) {
+      res.status(404).json({ error: "File not found on disk" });
       return;
     }
 
-    const buffer = Buffer.from(await response.arrayBuffer());
     const preset = PRESET_MAP[screenshot.presetKey];
     const filename = `${preset?.label || screenshot.presetKey}-${screenshot.width}x${screenshot.height}.png`
       .replace(/[^a-zA-Z0-9._-]/g, "_");
 
     res.setHeader("Content-Type", "image/png");
-    res.setHeader("Content-Length", buffer.length.toString());
     res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
     res.setHeader("Cache-Control", "public, max-age=86400");
-    res.send(buffer);
+    res.sendFile(filePath);
   } catch (error) {
     console.error("Download error:", error);
     if (!res.headersSent) {
