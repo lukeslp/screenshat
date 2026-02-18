@@ -143,84 +143,24 @@ export const appRouter = router({
         }
 
         try {
-          const response = await invokeLLM({
-            messages: [
-              {
-                role: "system",
-                content: `You are an expert visual analyst specializing in social media content optimization. Analyze the provided screenshot and suggest optimal crop regions for different social media formats. Consider the visual hierarchy, focal points, text placement, and key content areas. Return a JSON response with your analysis.`,
-              },
-              {
-                role: "user",
-                content: [
-                  {
-                    type: "text",
-                    text: `Analyze this screenshot (${screenshot.width}x${screenshot.height}px, preset: ${screenshot.presetKey}) and provide:
+          const prompt = `Analyze this screenshot (${screenshot.width}x${screenshot.height}px, preset: ${screenshot.presetKey}) and provide:
 1. A brief description of the content
 2. The primary focal point coordinates (as percentage from top-left)
 3. Suggested crop regions for different social formats (OG 1.91:1, Twitter 16:9, Instagram 1:1, Instagram 4:5, Story 9:16, Pinterest 2:3)
 4. A quality score (1-10) for how well this screenshot works as a social share image
 5. Suggestions for improvement
 
-Return as JSON with keys: description, focalPoint {x, y}, cropSuggestions [{format, x, y, width, height}], qualityScore, suggestions[]`,
-                  },
-                  {
-                    type: "image_url",
-                    image_url: {
-                      url: screenshot.fileUrl,
-                      detail: "high",
-                    },
-                  },
-                ],
-              },
-            ],
-            response_format: {
-              type: "json_schema",
-              json_schema: {
-                name: "screenshot_analysis",
-                strict: true,
-                schema: {
-                  type: "object",
-                  properties: {
-                    description: { type: "string" },
-                    focalPoint: {
-                      type: "object",
-                      properties: {
-                        x: { type: "number" },
-                        y: { type: "number" },
-                      },
-                      required: ["x", "y"],
-                      additionalProperties: false,
-                    },
-                    cropSuggestions: {
-                      type: "array",
-                      items: {
-                        type: "object",
-                        properties: {
-                          format: { type: "string" },
-                          x: { type: "number" },
-                          y: { type: "number" },
-                          width: { type: "number" },
-                          height: { type: "number" },
-                        },
-                        required: ["format", "x", "y", "width", "height"],
-                        additionalProperties: false,
-                      },
-                    },
-                    qualityScore: { type: "number" },
-                    suggestions: {
-                      type: "array",
-                      items: { type: "string" },
-                    },
-                  },
-                  required: ["description", "focalPoint", "cropSuggestions", "qualityScore", "suggestions"],
-                  additionalProperties: false,
-                },
-              },
-            },
-          });
+Return ONLY valid JSON with keys: description (string), focalPoint {x, y} (numbers 0-100), cropSuggestions [{format, x, y, width, height}] (numbers 0-100), qualityScore (number 1-10), suggestions (string[])`;
 
-          const content = response.choices[0]?.message?.content;
-          const analysis = typeof content === "string" ? JSON.parse(content) : null;
+          const content = await analyzeWithVision(screenshot.fileUrl, prompt);
+          let analysis = null;
+          try {
+            // Strip markdown code fences if present
+            const cleaned = content.replace(/^```(?:json)?\n?/m, "").replace(/\n?```$/m, "").trim();
+            analysis = JSON.parse(cleaned);
+          } catch {
+            console.error("Failed to parse LLM JSON response:", content);
+          }
 
           if (analysis) {
             await updateScreenshotAnalysis(screenshot.id, analysis);
