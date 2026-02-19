@@ -9,26 +9,26 @@ Screenshot any URL at the exact pixel dimensions each platform expects — socia
 
 **[→ Try it live at dr.eamer.dev/screenshat](https://dr.eamer.dev/screenshat/)**
 
-![screenshat capture page](docs/screenshots/home.png)
+![screenshat capture page](https://raw.githubusercontent.com/lukeslp/screenshat/main/docs/screenshots/home.png)
 
 <details>
 <summary>Sample output + more screenshots</summary>
 
 **OG/Facebook card** captured from lukesteuber.com:
 
-![Sample OG card output](docs/screenshots/sample-og.png)
+![Sample OG card output](https://raw.githubusercontent.com/lukeslp/screenshat/main/docs/screenshots/sample-og.png)
 
 **2K portrait** captured from dr.eamer.dev/datavis/interactive/consensus:
 
-![Sample 2K portrait output](docs/screenshots/sample-2k-portrait.png)
+![Sample 2K portrait output](https://raw.githubusercontent.com/lukeslp/screenshat/main/docs/screenshots/sample-2k-portrait.png)
 
 **Results page** with alt text and analysis:
 
-![Results page](docs/screenshots/results.png)
+![Results page](https://raw.githubusercontent.com/lukeslp/screenshat/main/docs/screenshots/results.png)
 
 **Capture history:**
 
-![Capture history](docs/screenshots/history.png)
+![Capture history](https://raw.githubusercontent.com/lukeslp/screenshat/main/docs/screenshots/history.png)
 
 </details>
 
@@ -180,6 +180,13 @@ Tests live alongside the modules they cover (`server/*.test.ts`). Run a single f
 ```bash
 pnpm vitest run server/capture.test.ts
 ```
+
+## Roadmap
+
+- [ ] **GIF capture** — record a short animated GIF of the page (scroll, hover states, transitions)
+- [ ] **Video capture** — export a short MP4 of the page rendering or scrolling
+- [ ] Scheduled captures / change detection
+- [ ] Bulk URL mode
 
 ## License
 
