@@ -7,12 +7,26 @@
 
 Screenshot any URL at the exact pixel dimensions each platform expects — social cards, mobile viewports, and print-quality resolutions up to 16K. Captures run through Playwright headless Chromium; the results land in your history with download and ZIP export built in.
 
+**[→ Try it live at dr.eamer.dev/screenshat](https://dr.eamer.dev/screenshat/)**
+
 ![screenshat capture page](docs/screenshots/home.png)
 
 <details>
-<summary>More screenshots</summary>
+<summary>Sample output + more screenshots</summary>
 
-![Results page with alt text and analysis](docs/screenshots/results.png)
+**OG/Facebook card** captured from lukesteuber.com:
+
+![Sample OG card output](docs/screenshots/sample-og.png)
+
+**2K portrait** captured from dr.eamer.dev/datavis/interactive/consensus:
+
+![Sample 2K portrait output](docs/screenshots/sample-2k-portrait.png)
+
+**Results page** with alt text and analysis:
+
+![Results page](docs/screenshots/results.png)
+
+**Capture history:**
 
 ![Capture history](docs/screenshots/history.png)
 
