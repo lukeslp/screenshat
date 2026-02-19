@@ -141,7 +141,7 @@ Capture a URL and get one or more PNGs back as base64.
 **Example with curl:**
 
 ```bash
-curl -s -X POST https://dr.eamer.dev/v1/screenshot/capture \
+curl -s -X POST https://your-host/v1/screenshot/capture \
   -H "X-API-Key: $API_GATEWAY_KEY" \
   -H "Content-Type: application/json" \
   -d '{"url":"https://example.com","presets":["twitter"]}' \
