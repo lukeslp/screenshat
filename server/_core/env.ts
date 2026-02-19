@@ -36,6 +36,7 @@ export const ENV = {
     60
   ),
   captureMaxAgeDays: parseNumber(process.env.CAPTURE_MAX_AGE_DAYS, 30),
+  internalCaptureKey: process.env.INTERNAL_CAPTURE_KEY ?? "",
   // Legacy stubs for unused Manus _core modules
   forgeApiUrl: "",
   forgeApiKey: "",
