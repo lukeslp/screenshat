@@ -7,7 +7,16 @@
 
 Screenshot any URL at the exact pixel dimensions each platform expects — social cards, mobile viewports, and print-quality resolutions up to 16K. Captures run through Playwright headless Chromium; the results land in your history with download and ZIP export built in.
 
-<!-- screenshot -->
+![screenshat capture page](docs/screenshots/home.png)
+
+<details>
+<summary>More screenshots</summary>
+
+![Results page with alt text and analysis](docs/screenshots/results.png)
+
+![Capture history](docs/screenshots/history.png)
+
+</details>
 
 ## Features
 
