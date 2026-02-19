@@ -100,8 +100,7 @@ function ScreenshotCard({
 
   const handleDownload = () => {
     const a = document.createElement("a");
-    a.href = screenshot.fileUrl;
-    a.download = `screenshot-${screenshot.presetKey}-${screenshot.width}x${screenshot.height}.png`;
+    a.href = `${import.meta.env.BASE_URL}api/download/${screenshot.id}`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
