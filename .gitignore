@@ -111,3 +111,7 @@ temp/
 
 # Runtime screenshot storage
 data/
+
+# Aider session files
+.aider.chat.history.md
+.aider.input.history
