@@ -1,13 +1,10 @@
 # screenshat
 
-[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Node.js](https://img.shields.io/badge/Node.js-22+-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
-[![Live](https://img.shields.io/badge/live-dr.eamer.dev%2Fscreenshat-4ade80)](https://dr.eamer.dev/screenshat/)
+[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/) [![Node.js](https://img.shields.io/badge/Node.js-22+-339933?logo=node.js&logoColor=white)](https://nodejs.org/) [![Live](https://img.shields.io/badge/live-dr.eamer.dev%2Fscreenshat-4ade80)](https://dr.eamer.dev/screenshat/)
 
 Screenshot any URL at the exact pixel dimensions each platform expects — social cards, mobile viewports, and print-quality resolutions up to 16K. Captures run through Playwright headless Chromium; the results land in your history with download and ZIP export built in.
 
-![screenshat UI](docs/screenshots/screenshat-ui.png)
+<!-- screenshot -->
 
 ## Features
 
@@ -15,8 +12,8 @@ Screenshot any URL at the exact pixel dimensions each platform expects — socia
 - **Bulk URL mode** — paste a list of URLs and capture them all against any preset combination
 - **Configurable wait strategy** — choose between network idle, page load, DOMContentLoaded, or first server response; add an optional extra delay for late-rendering content
 - **Element-targeted capture** — pass a CSS selector to clip the output to a specific DOM node
-- **Vision analysis via Claude** — request a quality score, focal point coordinates, suggested crop regions for each social format, and improvement notes for any screenshot
-- **Alt text generation** — Claude describes each screenshot in one or two sentences (under 125 characters), stored per-image
+- **Vision analysis** — request a quality score, focal point coordinates, suggested crop regions for each social format, and improvement notes for any screenshot; runs through whichever LLM provider you configure
+- **Alt text generation** — the vision model describes each screenshot in one or two sentences (under 125 characters), stored per-image and editable inline
 - **Alt text embedded in PNG on download** — the `tEXt` chunk is written at download time using the `png-chunk-text` pipeline, so the metadata travels with the file
 - **ZIP export with manifest** — download all screenshots from a job as a single ZIP; if any have alt text, an `alt-text.txt` manifest is included
 - **Capture history** — every job is persisted in MySQL via Drizzle ORM; browse, re-download, or delete past captures
@@ -52,15 +49,52 @@ pnpm start
 
 ### Environment Variables
 
-| Variable | Purpose |
-|----------|---------|
-| `DATABASE_URL` | MySQL connection string, e.g. `mysql://user:pass@localhost:3306/screenshat` |
-| `API_GATEWAY_URL` | Base URL of the local api-gateway that proxies LLM and storage calls |
-| `API_GATEWAY_KEY` | Auth token for the api-gateway |
-| `JWT_SECRET` | Secret used to sign session cookies |
-| `OAUTH_SERVER_URL` | OAuth provider base URL |
-| `OWNER_OPEN_ID` | OpenID subject for the admin account |
-| `PORT` | Port to listen on (default: 3000, auto-increments if busy) |
+| Variable | Required | Purpose |
+|----------|----------|---------|
+| `DATABASE_URL` | yes | MySQL connection string, e.g. `mysql://user:pass@localhost:3306/screenshat` |
+| `INTERNAL_CAPTURE_KEY` | yes | Secret for the internal capture API route |
+| `PORT` | no | Port to listen on — defaults to 3000, auto-increments if busy |
+| `JWT_SECRET` | no | Secret used to sign session cookies |
+| `OAUTH_SERVER_URL` | no | OAuth provider base URL |
+| `OWNER_OPEN_ID` | no | OpenID subject for the admin account |
+| `LLM_PROVIDER` | no | `gateway` (default), `openai`, `anthropic`, or `google` |
+| `LLM_API_KEY` | if direct provider | API key for OpenAI, Anthropic, or Google |
+| `LLM_MODEL` | no | Override the default model (e.g. `gpt-4o`, `claude-sonnet-4-6`) |
+| `API_GATEWAY_URL` | if using gateway | Base URL of the local api-gateway |
+| `API_GATEWAY_KEY` | if using gateway | Auth token for the api-gateway |
+
+## LLM Setup
+
+Vision analysis is optional — captures work without it. Set `LLM_PROVIDER` in `.env` to choose how analysis calls are made.
+
+### Option 1 — Local api-gateway (default)
+
+Leave `LLM_PROVIDER` unset or set it to `gateway`. Point `API_GATEWAY_URL` at a running api-gateway instance and supply `API_GATEWAY_KEY`.
+
+```env
+LLM_PROVIDER=gateway
+API_GATEWAY_URL=http://localhost:5200
+API_GATEWAY_KEY=your-gateway-key
+```
+
+### Option 2 — Direct provider
+
+Set `LLM_PROVIDER` to `openai`, `anthropic`, or `google` and supply `LLM_API_KEY`. Default models are `gpt-4o`, `claude-sonnet-4-6`, and `gemini-3-flash-preview` respectively. Override the model with `LLM_MODEL`.
+
+```env
+# OpenAI
+LLM_PROVIDER=openai
+LLM_API_KEY=sk-...
+LLM_MODEL=gpt-4o          # optional
+
+# Anthropic
+LLM_PROVIDER=anthropic
+LLM_API_KEY=sk-ant-...
+
+# Google
+LLM_PROVIDER=google
+LLM_API_KEY=AIza...
+```
 
 ## Preset Reference
 
