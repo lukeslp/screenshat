@@ -9,7 +9,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import Navbar from "@/components/Navbar";
 import ThumbnailTester from "@/components/ThumbnailTester";
 import { PRESET_MAP } from "@shared/presets";
@@ -237,50 +236,7 @@ export default function CaptureResults() {
   });
 
   const utils = trpc.useUtils();
-  const [analyzingIds, setAnalyzingIds] = useState<number[]>([]);
-  const [isAnalyzingAll, setIsAnalyzingAll] = useState(false);
-  const [analyzeAllProgress, setAnalyzeAllProgress] = useState(0);
-  const analyzeAllTotal = useRef(0);
   const [generatingAltTextIds, setGeneratingAltTextIds] = useState<number[]>([]);
-
-  const handleAnalyze = async (screenshotId: number) => {
-    setAnalyzingIds(prev => [...prev, screenshotId]);
-    try {
-      await analyzeMutation.mutateAsync({ screenshotId });
-      await utils.capture.getJob.invalidate({ jobId });
-      toast.success("Analysis complete");
-    } finally {
-      setAnalyzingIds(prev => prev.filter(id => id !== screenshotId));
-    }
-  };
-
-  const handleAnalyzeAll = async () => {
-    if (!job?.screenshots) return;
-    const unanalyzed = job.screenshots.filter(s => !s.analysisResult);
-    if (unanalyzed.length === 0) return;
-
-    setIsAnalyzingAll(true);
-    setAnalyzeAllProgress(0);
-    analyzeAllTotal.current = unanalyzed.length;
-
-    for (let i = 0; i < unanalyzed.length; i++) {
-      const ss = unanalyzed[i];
-      setAnalyzeAllProgress(i + 1);
-      setAnalyzingIds(prev => [...prev, ss.id]);
-      try {
-        await analyzeMutation.mutateAsync({ screenshotId: ss.id });
-        await utils.capture.getJob.invalidate({ jobId });
-      } catch {
-        // continue with remaining screenshots
-      } finally {
-        setAnalyzingIds(prev => prev.filter(id => id !== ss.id));
-      }
-    }
-
-    setIsAnalyzingAll(false);
-    setAnalyzeAllProgress(0);
-    toast.success("Analysis complete for all screenshots");
-  };
 
   const handleGenerateAltText = async (screenshotId: number) => {
     setGeneratingAltTextIds(prev => [...prev, screenshotId]);
@@ -353,9 +309,6 @@ export default function CaptureResults() {
     );
   }
 
-  const analyzedCount = job.screenshots.filter(s => s.analysisResult !== null).length;
-  const unanalyzedCount = job.screenshots.length - analyzedCount;
-
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
@@ -377,11 +330,6 @@ export default function CaptureResults() {
                 >
                   {job.status}
                 </Badge>
-                {job.screenshots.length > 0 && (
-                  <span className="text-[10px] text-muted-foreground">
-                    {analyzedCount}/{job.screenshots.length} analyzed
-                  </span>
-                )}
               </div>
               <div className="flex items-center gap-2 text-xs text-muted-foreground ml-9">
                 <ExternalLink className="h-3 w-3" />
@@ -405,28 +353,6 @@ export default function CaptureResults() {
                   New
                 </Button>
               </Link>
-              {unanalyzedCount > 0 && !isAnalyzingAll && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-7 gap-1 text-[11px]"
-                  onClick={handleAnalyzeAll}
-                >
-                  <Sparkles className="h-3 w-3" />
-                  Analyze All
-                </Button>
-              )}
-              {isAnalyzingAll && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-7 gap-1 text-[11px]"
-                  disabled
-                >
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                  Analyzing {analyzeAllProgress} / {analyzeAllTotal.current}…
-                </Button>
-              )}
               {job.screenshots.length > 0 && (
                 <Button
                   size="sm"
@@ -467,9 +393,6 @@ export default function CaptureResults() {
                 <ScreenshotCard
                   key={ss.id}
                   screenshot={ss}
-                  onAnalyze={handleAnalyze}
-                  isAnalyzing={analyzingIds.includes(ss.id)}
-                  analyzeDisabled={isAnalyzingAll}
                   onGenerateAltText={handleGenerateAltText}
                   onUpdateAltText={handleUpdateAltText}
                   isGeneratingAltText={generatingAltTextIds.includes(ss.id)}
