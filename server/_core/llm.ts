@@ -26,6 +26,11 @@ export async function analyzeWithVision(
   imageUrl: string,
   prompt: string
 ): Promise<string> {
+  // Strip data URL prefix if present — api-gateway expects raw base64 or a plain URL
+  const image = imageUrl.startsWith("data:")
+    ? imageUrl.split(",")[1] ?? imageUrl
+    : imageUrl;
+
   const response = await fetch(`${API_GATEWAY_URL}/v1/llm/vision`, {
     method: "POST",
     headers: {
@@ -35,7 +40,8 @@ export async function analyzeWithVision(
     body: JSON.stringify({
       provider: "anthropic",
       model: "claude-sonnet-4-5-20250929",
-      image: imageUrl,
+      image,
+      media_type: "image/png",
       prompt,
     }),
   });

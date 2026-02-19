@@ -1,4 +1,4 @@
-export type PresetCategory = "social" | "highres";
+export type PresetCategory = "social" | "highres" | "mobile";
 
 export interface ScreenshotPreset {
   key: string;
@@ -91,6 +91,40 @@ export const PRESETS: ScreenshotPreset[] = [
     aspectRatio: "2:3",
     deviceScaleFactor: 1,
   },
+  // Mobile Portrait Presets
+  {
+    key: "mobile-iphone",
+    label: "Mobile (iPhone)",
+    width: 390,
+    height: 844,
+    category: "mobile",
+    description: "iPhone 14/15 viewport — standard mobile portrait",
+    icon: "smartphone",
+    aspectRatio: "9:19.5",
+    deviceScaleFactor: 3,
+  },
+  {
+    key: "mobile-android",
+    label: "Mobile (Android)",
+    width: 412,
+    height: 915,
+    category: "mobile",
+    description: "Pixel 7 viewport — standard Android portrait",
+    icon: "smartphone",
+    aspectRatio: "9:20",
+    deviceScaleFactor: 3,
+  },
+  {
+    key: "tablet-portrait",
+    label: "Tablet Portrait",
+    width: 768,
+    height: 1024,
+    category: "mobile",
+    description: "iPad portrait — 768 × 1024",
+    icon: "tablet",
+    aspectRatio: "3:4",
+    deviceScaleFactor: 2,
+  },
   // High Resolution Presets
   // deviceScaleFactor = DPR: CSS viewport is width/DPR × height/DPR, output pixels are width × height
   // This zooms content proportionately rather than rendering in miniature at a huge viewport.
@@ -144,6 +178,7 @@ export const PRESET_MAP = Object.fromEntries(PRESETS.map(p => [p.key, p]));
 
 export const SOCIAL_PRESETS = PRESETS.filter(p => p.category === "social");
 export const HIGHRES_PRESETS = PRESETS.filter(p => p.category === "highres");
+export const MOBILE_PRESETS = PRESETS.filter(p => p.category === "mobile");
 
 export type WaitStrategy = "networkidle" | "domcontentloaded" | "load" | "commit";
 

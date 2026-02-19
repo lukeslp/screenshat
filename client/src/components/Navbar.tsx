@@ -1,4 +1,4 @@
-import { Aperture, History } from "lucide-react";
+import { Aperture, History, Waves, User } from "lucide-react";
 import { Link, useLocation } from "wouter";
 
 export default function Navbar() {
@@ -39,6 +39,25 @@ export default function Navbar() {
             <History className="h-3 w-3" />
             history
           </Link>
+          <div className="w-px h-4 bg-border/40 mx-0.5" />
+          <a
+            href="https://dr.eamer.dev/bluesky"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-mono text-muted-foreground hover:text-foreground hover:bg-secondary/30 transition-colors"
+          >
+            <Waves className="h-3 w-3" />
+            bluesky
+          </a>
+          <a
+            href="https://lukesteuber.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-mono text-muted-foreground hover:text-foreground hover:bg-secondary/30 transition-colors"
+          >
+            <User className="h-3 w-3" />
+            luke
+          </a>
         </nav>
       </div>
     </header>
