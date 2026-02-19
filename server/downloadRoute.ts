@@ -1,23 +1,43 @@
 import { Router } from "express";
 import fs from "fs";
 import path from "path";
-import { getScreenshotById } from "./db";
+import {
+  claimCaptureJobForUserIfUnowned,
+  claimScreenshotForUserIfUnowned,
+  getScreenshotById,
+  getScreenshotByIdForUser,
+} from "./db";
 import { PRESET_MAP } from "../shared/presets";
 import { DATA_DIR } from "./storage";
+import { getSessionUserFromRequest } from "./_core/session";
 import { embedAltText } from "./pngMeta";
 
 const downloadRouter = Router();
 
-// Individual screenshot download — embeds alt text as PNG tEXt metadata if present
+// Individual screenshot download - embeds alt text as PNG metadata if present
 downloadRouter.get("/api/download/:screenshotId", async (req, res) => {
   try {
+    const user = await getSessionUserFromRequest(req);
+    if (!user) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+
     const screenshotId = parseInt(req.params.screenshotId);
     if (isNaN(screenshotId)) {
       res.status(400).json({ error: "Invalid screenshot ID" });
       return;
     }
 
-    const screenshot = await getScreenshotById(screenshotId);
+    let screenshot = await getScreenshotByIdForUser(screenshotId, user.id);
+    if (!screenshot) {
+      const unowned = await getScreenshotById(screenshotId);
+      if (unowned && unowned.userId === null) {
+        await claimCaptureJobForUserIfUnowned(unowned.jobId, user.id);
+        await claimScreenshotForUserIfUnowned(screenshotId, user.id);
+        screenshot = await getScreenshotByIdForUser(screenshotId, user.id);
+      }
+    }
     if (!screenshot) {
       res.status(404).json({ error: "Screenshot not found" });
       return;
@@ -35,10 +55,9 @@ downloadRouter.get("/api/download/:screenshotId", async (req, res) => {
 
     res.setHeader("Content-Type", "image/png");
     res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
-    res.setHeader("Cache-Control", "no-cache"); // alt text may change
+    res.setHeader("Cache-Control", "no-cache");
 
     if (screenshot.altText) {
-      // Embed alt text into PNG metadata on the fly
       const rawBuffer = await fs.promises.readFile(filePath);
       const withMeta = embedAltText(rawBuffer, screenshot.altText);
       res.end(withMeta);

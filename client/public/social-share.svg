@@ -1,0 +1,60 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="1200"
+  height="630"
+  viewBox="0 0 1200 630"
+  role="img"
+  aria-labelledby="title desc">
+  <title id="title">screenshat social share image</title>
+  <desc id="desc">
+    Brand card with the text screenshat and a preview-style frame for website screenshots.
+  </desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a111f" />
+      <stop offset="55%" stop-color="#10253e" />
+      <stop offset="100%" stop-color="#1b3d63" />
+    </linearGradient>
+    <linearGradient id="frame" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#8ad6ff" />
+      <stop offset="100%" stop-color="#d0f0ff" />
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)" />
+  <circle cx="1060" cy="90" r="220" fill="#58b8ff" opacity="0.12" />
+  <circle cx="180" cy="560" r="250" fill="#3f8fd8" opacity="0.12" />
+
+  <rect x="100" y="108" width="1000" height="414" rx="26" fill="#0d1a2d" opacity="0.95" />
+  <rect x="100" y="108" width="1000" height="414" rx="26" fill="none" stroke="url(#frame)" stroke-width="3" />
+
+  <rect x="136" y="148" width="930" height="46" rx="12" fill="#12243b" />
+  <circle cx="168" cy="171" r="7" fill="#ff7f7f" />
+  <circle cx="192" cy="171" r="7" fill="#ffd37f" />
+  <circle cx="216" cy="171" r="7" fill="#86f2b3" />
+  <rect x="252" y="160" width="578" height="22" rx="10" fill="#1e3552" />
+
+  <rect x="136" y="216" width="560" height="268" rx="16" fill="#142a45" />
+  <rect x="720" y="216" width="346" height="168" rx="16" fill="#173454" />
+  <rect x="720" y="402" width="346" height="82" rx="16" fill="#1e4269" />
+
+  <text
+    x="136"
+    y="570"
+    fill="#e9f7ff"
+    font-family="Syne, Arial, sans-serif"
+    font-size="72"
+    font-weight="700"
+    letter-spacing="1.5">
+    screenshat
+  </text>
+  <text
+    x="602"
+    y="570"
+    fill="#a6dfff"
+    font-family="IBM Plex Mono, Menlo, monospace"
+    font-size="26"
+    font-weight="500">
+    Capture social-ready screenshots instantly
+  </text>
+</svg>

@@ -2,28 +2,49 @@ import { Router } from "express";
 import archiver from "archiver";
 import fs from "fs";
 import path from "path";
-import { getScreenshotsByJobId, getCaptureJobById } from "./db";
+import {
+  claimCaptureJobForUserIfUnowned,
+  claimScreenshotsForJobIfUnowned,
+  getCaptureJobById,
+  getCaptureJobByIdForUser,
+  getScreenshotsByJobIdForUser,
+} from "./db";
 import { PRESET_MAP } from "../shared/presets";
 import { DATA_DIR } from "./storage";
+import { getSessionUserFromRequest } from "./_core/session";
 import { embedAltText } from "./pngMeta";
 
 const zipRouter = Router();
 
 zipRouter.get("/api/download-zip/:jobId", async (req, res) => {
   try {
+    const user = await getSessionUserFromRequest(req);
+    if (!user) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+
     const jobId = parseInt(req.params.jobId);
     if (isNaN(jobId)) {
       res.status(400).json({ error: "Invalid job ID" });
       return;
     }
 
-    const job = await getCaptureJobById(jobId);
+    let job = await getCaptureJobByIdForUser(jobId, user.id);
+    if (!job) {
+      const unowned = await getCaptureJobById(jobId);
+      if (unowned && unowned.userId === null) {
+        await claimCaptureJobForUserIfUnowned(jobId, user.id);
+        await claimScreenshotsForJobIfUnowned(jobId, user.id);
+        job = await getCaptureJobByIdForUser(jobId, user.id);
+      }
+    }
     if (!job) {
       res.status(404).json({ error: "Job not found" });
       return;
     }
 
-    const screenshots = await getScreenshotsByJobId(jobId);
+    const screenshots = await getScreenshotsByJobIdForUser(jobId, user.id);
     if (screenshots.length === 0) {
       res.status(404).json({ error: "No screenshots found" });
       return;
@@ -53,7 +74,6 @@ zipRouter.get("/api/download-zip/:jobId", async (req, res) => {
         .replace(/[^a-zA-Z0-9._-]/g, "_");
 
       if (ss.altText) {
-        // Embed alt text into PNG metadata before adding to ZIP
         const rawBuffer = await fs.promises.readFile(filePath);
         const withMeta = embedAltText(rawBuffer, ss.altText);
         archive.append(withMeta, { name });

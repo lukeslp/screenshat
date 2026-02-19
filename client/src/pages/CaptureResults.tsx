@@ -100,7 +100,7 @@ function ScreenshotCard({
 
   const handleDownload = () => {
     const a = document.createElement("a");
-    a.href = `/api/download/${screenshot.id}`;
+    a.href = screenshot.fileUrl;
     a.download = `screenshot-${screenshot.presetKey}-${screenshot.width}x${screenshot.height}.png`;
     document.body.appendChild(a);
     a.click();
@@ -440,7 +440,7 @@ export default function CaptureResults() {
     if (!job?.screenshots) return;
     try {
       const a = document.createElement("a");
-      a.href = `/api/download-zip/${jobId}`;
+      a.href = `${import.meta.env.BASE_URL}api/download-zip/${jobId}`;
       a.download = `screenshots-${jobId}.zip`;
       document.body.appendChild(a);
       a.click();
