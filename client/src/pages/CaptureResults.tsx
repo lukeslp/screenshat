@@ -22,10 +22,8 @@ import {
   Loader2,
   PackageOpen,
   Sparkles,
-  Check,
   AlertCircle,
   Camera,
-  Info,
   FileText,
   RotateCcw,
 } from "lucide-react";
@@ -33,25 +31,8 @@ import { useState, useRef } from "react";
 import { Link, useParams } from "wouter";
 import { toast } from "sonner";
 
-interface AnalysisResult {
-  description: string;
-  focalPoint: { x: number; y: number };
-  cropSuggestions: Array<{
-    format: string;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  }>;
-  qualityScore: number;
-  suggestions: string[];
-}
-
 function ScreenshotCard({
   screenshot,
-  onAnalyze,
-  isAnalyzing,
-  analyzeDisabled,
   onGenerateAltText,
   onUpdateAltText,
   isGeneratingAltText,
@@ -66,19 +47,14 @@ function ScreenshotCard({
     analysisResult: Record<string, unknown> | null;
     altText?: string | null;
   };
-  onAnalyze: (id: number) => void;
-  isAnalyzing: boolean;
-  analyzeDisabled?: boolean;
   onGenerateAltText: (id: number) => void;
   onUpdateAltText: (id: number, text: string) => void;
   isGeneratingAltText: boolean;
 }) {
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [analysisOpen, setAnalysisOpen] = useState(false);
   const [editedAltText, setEditedAltText] = useState<string | null>(null);
   const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const preset = PRESET_MAP[screenshot.presetKey];
-  const analysis = screenshot.analysisResult as AnalysisResult | null;
 
   const formatBytes = (bytes: number | null) => {
     if (!bytes) return "—";
@@ -149,22 +125,6 @@ function ScreenshotCard({
               Download
             </Button>
           </div>
-          {analysis && (
-            <div className="absolute top-2 right-2">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    onClick={() => setAnalysisOpen(true)}
-                    aria-label={`Quality score ${analysis.qualityScore}/10 — view analysis`}
-                    className="h-6 w-6 rounded-full bg-primary/80 backdrop-blur-sm flex items-center justify-center text-white text-[10px] font-bold shadow-lg"
-                  >
-                    {analysis.qualityScore}
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent>Quality Score: {analysis.qualityScore}/10</TooltipContent>
-              </Tooltip>
-            </div>
-          )}
         </div>
         <CardContent className="p-2.5 space-y-1.5">
           <div className="flex items-center justify-between">
@@ -192,33 +152,6 @@ function ScreenshotCard({
             >
               <Download className="h-2.5 w-2.5" />
               Download
-            </Button>
-            <Button
-              size="sm"
-              variant={analysis ? "secondary" : "outline"}
-              className="h-6 text-[10px] gap-1 px-2"
-              onClick={() => {
-                if (analysis) {
-                  setAnalysisOpen(true);
-                } else {
-                  onAnalyze(screenshot.id);
-                }
-              }}
-              disabled={isAnalyzing || (analyzeDisabled && !analysis)}
-            >
-              {isAnalyzing ? (
-                <Loader2 className="h-2.5 w-2.5 animate-spin" />
-              ) : analysis ? (
-                <>
-                  <Check className="h-2.5 w-2.5" />
-                  Analysis
-                </>
-              ) : (
-                <>
-                  <Sparkles className="h-2.5 w-2.5" />
-                  Analyze
-                </>
-              )}
             </Button>
           </div>
 
@@ -282,73 +215,6 @@ function ScreenshotCard({
         </DialogContent>
       </Dialog>
 
-      {/* Analysis Dialog */}
-      <Dialog open={analysisOpen} onOpenChange={setAnalysisOpen}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-sm">
-              <Sparkles className="h-3.5 w-3.5 text-primary" />
-              Analysis — {preset?.label || screenshot.presetKey}
-            </DialogTitle>
-          </DialogHeader>
-          {analysis && (
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 p-2.5 rounded-lg bg-primary/5 border border-primary/10">
-                <div className="text-xl font-bold text-primary">
-                  {analysis.qualityScore}
-                  <span className="text-xs font-normal text-muted-foreground">/10</span>
-                </div>
-                <div>
-                  <p className="text-xs font-medium">Quality Score</p>
-                  <p className="text-[10px] text-muted-foreground">
-                    Focal point: {Math.round(analysis.focalPoint.x)}%, {Math.round(analysis.focalPoint.y)}%
-                  </p>
-                </div>
-              </div>
-
-              <div>
-                <h4 className="text-xs font-semibold mb-1">Description</h4>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  {analysis.description}
-                </p>
-              </div>
-
-              {analysis.suggestions.length > 0 && (
-                <div>
-                  <h4 className="text-xs font-semibold mb-1">Suggestions</h4>
-                  <ul className="space-y-1">
-                    {analysis.suggestions.map((s, i) => (
-                      <li key={i} className="flex items-start gap-1.5 text-xs text-muted-foreground">
-                        <Info className="h-3 w-3 text-primary shrink-0 mt-0.5" />
-                        {s}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {analysis.cropSuggestions.length > 0 && (
-                <div>
-                  <h4 className="text-xs font-semibold mb-1">Crop Regions</h4>
-                  <div className="grid grid-cols-2 gap-1.5">
-                    {analysis.cropSuggestions.map((crop, i) => (
-                      <div
-                        key={i}
-                        className="text-[10px] p-1.5 rounded bg-secondary/50 border border-border/40"
-                      >
-                        <span className="font-medium">{crop.format}</span>
-                        <span className="text-muted-foreground block font-mono mt-0.5">
-                          {Math.round(crop.x)},{Math.round(crop.y)} → {Math.round(crop.width)}×{Math.round(crop.height)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </>
   );
 }
@@ -361,10 +227,6 @@ export default function CaptureResults() {
     { jobId },
     { enabled: jobId > 0, refetchOnWindowFocus: false }
   );
-
-  const analyzeMutation = trpc.capture.analyze.useMutation({
-    onError: (err) => toast.error(err.message),
-  });
 
   const generateAltTextMutation = trpc.capture.generateAltText.useMutation({
     onError: (err) => toast.error(err.message),
