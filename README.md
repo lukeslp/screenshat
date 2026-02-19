@@ -5,7 +5,7 @@
 [![Node.js](https://img.shields.io/badge/Node.js-22+-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Live](https://img.shields.io/badge/live-dr.eamer.dev%2Fscreenshat-4ade80)](https://dr.eamer.dev/screenshat/)
 
-Screenshot any URL at the exact pixel dimensions each platform expects — social cards, mobile viewports, and print-quality resolutions up to 16K. Captures run through Playwright headless Chromium; the results land in your history with download and ZIP export built in.
+Screenshot any URL at the exact dimensions each platform expects — social cards, mobile viewports, and print-quality resolutions up to 16K. Runs headless Chromium via Playwright. Results land in your history with individual download and ZIP export.
 
 **[→ Try it live at dr.eamer.dev/screenshat](https://dr.eamer.dev/screenshat/)**
 
