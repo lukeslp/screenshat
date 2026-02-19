@@ -323,7 +323,7 @@ export default function CaptureResults() {
                     <ArrowLeft className="h-3.5 w-3.5" />
                   </button>
                 </Link>
-                <h1 className="text-lg font-bold tracking-tight">Results</h1>
+                <h1 className="text-lg font-bold tracking-tight font-mono">Results</h1>
                 <Badge
                   variant={job.status === "completed" ? "default" : "destructive"}
                   className="text-[10px] h-5"

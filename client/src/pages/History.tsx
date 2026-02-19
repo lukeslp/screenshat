@@ -227,7 +227,7 @@ export default function History() {
               <Camera className="h-10 w-10 text-muted-foreground/20 mx-auto mb-3" />
               <h3 className="text-sm font-semibold">No captures yet</h3>
               <p className="text-xs text-muted-foreground mt-1 mb-4">
-                Start by capturing your first website screenshot.
+                Drop a URL on the capture page to get started.
               </p>
               <Link href="/">
                 <Button size="sm" className="gap-1.5 text-xs">
