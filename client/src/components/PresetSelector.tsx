@@ -280,8 +280,40 @@ export default function PresetSelector({
             {highresAllSelected ? "none" : "all"}
           </button>
         </div>
+
+        {/* Landscape sub-group */}
+        <div className="flex items-center justify-between mb-1.5">
+          <span className="text-[10px] font-mono text-muted-foreground/50 uppercase tracking-wide">Landscape</span>
+          <button
+            onClick={() => selectAll(highresLandscape)}
+            className="text-[10px] font-mono text-primary/50 hover:text-primary/80 transition-colors uppercase tracking-wide"
+          >
+            {highresLandscapeAllSelected ? "none" : "all"}
+          </button>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 mb-3">
+          {highresLandscape.map(preset => (
+            <PresetCard
+              key={preset.key}
+              preset={preset}
+              selected={selectedKeys.includes(preset.key)}
+              onToggle={() => togglePreset(preset.key)}
+            />
+          ))}
+        </div>
+
+        {/* Portrait sub-group */}
+        <div className="flex items-center justify-between mb-1.5">
+          <span className="text-[10px] font-mono text-muted-foreground/50 uppercase tracking-wide">Portrait</span>
+          <button
+            onClick={() => selectAll(highresPortrait)}
+            className="text-[10px] font-mono text-primary/50 hover:text-primary/80 transition-colors uppercase tracking-wide"
+          >
+            {highresPortraitAllSelected ? "none" : "all"}
+          </button>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-          {HIGHRES_PRESETS.map(preset => (
+          {highresPortrait.map(preset => (
             <PresetCard
               key={preset.key}
               preset={preset}
