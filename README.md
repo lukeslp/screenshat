@@ -1,75 +1,72 @@
+[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript&logoColor=white)](https://www.typescriptlang.org/) [![Live](https://img.shields.io/badge/live-dr.eamer.dev%2Fscreenshat-brightgreen)](https://dr.eamer.dev/screenshat/)
+
 # screenshat
 
-[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/) [![Node.js](https://img.shields.io/badge/Node.js-22+-339933?logo=node.js&logoColor=white)](https://nodejs.org/) [![Live](https://img.shields.io/badge/live-dr.eamer.dev%2Fscreenshat-4ade80)](https://dr.eamer.dev/screenshat/)
-
-Screenshot any URL at the exact pixel dimensions each platform expects — social cards, mobile viewports, and print-quality resolutions up to 16K. Captures run through Playwright headless Chromium; the results land in your history with download and ZIP export built in.
+Paste a URL, get screenshots at every social media dimension in seconds. One capture job covers OG cards, Twitter/X, LinkedIn, Instagram (square, portrait, story), Pinterest, mobile viewports, and high-res up to 16K — all via headless Chromium.
 
 <!-- screenshot -->
 
 ## Features
 
-- **Capture 18 presets in one shot** — social cards (OG/Facebook 1200x630, Twitter/X 1200x675, LinkedIn 1200x627, Instagram square/portrait/story, Pinterest 1000x1500), mobile viewports (iPhone 14/15 390x844, Pixel 7 412x915, iPad portrait 768x1024), and high-res landscape + portrait (2K through 16K at correct device pixel ratios)
-- **Bulk URL mode** — paste a list of URLs and capture them all against any preset combination
-- **Configurable wait strategy** — choose between network idle, page load, DOMContentLoaded, or first server response; add an optional extra delay for late-rendering content
-- **Element-targeted capture** — pass a CSS selector to clip the output to a specific DOM node
-- **Vision analysis** — request a quality score, focal point coordinates, suggested crop regions for each social format, and improvement notes for any screenshot; runs through whichever LLM provider you configure
-- **Alt text generation** — the vision model describes each screenshot in one or two sentences (under 125 characters), stored per-image and editable inline
-- **Alt text embedded in PNG on download** — the `tEXt` chunk is written at download time using the `png-chunk-text` pipeline, so the metadata travels with the file
-- **ZIP export with manifest** — download all screenshots from a job as a single ZIP; if any have alt text, an `alt-text.txt` manifest is included
-- **Capture history** — every job is persisted in MySQL via Drizzle ORM; browse, re-download, or delete past captures
-- **Rate limiting** — per-IP limits on both capture and analysis endpoints keep the service usable under concurrent load
-- **URL safety validation** — private IP ranges and localhost are blocked before Playwright touches the request
-
-## Demo
-
-These screenshots were captured with screenshat itself — 1200×675 Twitter/X preset, network-idle wait strategy:
-
-| | | |
-|---|---|---|
-| ![Consensus visualization](docs/screenshots/demo-consensus.png) | ![Steam library](docs/screenshots/demo-steam.png) | ![Language network](docs/screenshots/demo-language-network.png) |
-| dr.eamer.dev/datavis/interactive/consensus | dr.eamer.dev/steam | dr.eamer.dev/datavis/interactive/language/network |
+- **Capture any URL across 19 presets** — 7 social formats, 3 mobile viewports (iPhone, Android, tablet), and 8 high-res sizes (2K–16K, landscape and portrait)
+- **Vision analysis** — quality score out of 10, focal point coordinates, per-format crop suggestions, and improvement tips, returned as structured JSON
+- **Alt text generation** — writes a concise description under 125 chars; edit it inline, then download with the text embedded in PNG metadata (`tEXt` chunk)
+- **ZIP download** — stream all screenshots for a job as a single archive
+- **Capture history** — paginated list of past jobs with thumbnails
+- **Advanced capture controls** — choose wait strategy (network idle, DOM ready, page load, or first response), target a CSS selector before screenshotting, add an extra delay for animations or lazy-loaded content
+- **SSRF protection** — URL safety validation resolves hostnames and blocks private/loopback IP ranges before Playwright touches them
+- **Rate limiting** — per-IP sliding-window limits on captures and analysis calls
+- **Multi-provider LLM** — switch between a local api-gateway, OpenAI, Anthropic, or Google with one env var
 
 ## Quick Start
 
 ```bash
-git clone https://github.com/lukeslp/screenshat.git
+git clone https://github.com/lukeslp/screenshat
 cd screenshat
 pnpm install
-cp .env.example .env   # fill in the values below
-pnpm db:push           # create MySQL tables via Drizzle
-pnpm dev               # Express + Vite dev server on port 5091
 ```
 
-Production build:
+Copy the example env file and fill in the required values:
 
 ```bash
-pnpm build
-pnpm start
+cp .env.example .env
 ```
 
-### Environment Variables
+Minimum required variables:
 
-| Variable | Required | Purpose |
-|----------|----------|---------|
-| `DATABASE_URL` | yes | MySQL connection string, e.g. `mysql://user:pass@localhost:3306/screenshat` |
-| `INTERNAL_CAPTURE_KEY` | yes | Secret for the internal capture API route |
-| `PORT` | no | Port to listen on — defaults to 3000, auto-increments if busy |
-| `JWT_SECRET` | no | Secret used to sign session cookies |
-| `OAUTH_SERVER_URL` | no | OAuth provider base URL |
-| `OWNER_OPEN_ID` | no | OpenID subject for the admin account |
-| `LLM_PROVIDER` | no | `gateway` (default), `openai`, `anthropic`, or `google` |
-| `LLM_API_KEY` | if direct provider | API key for OpenAI, Anthropic, or Google |
-| `LLM_MODEL` | no | Override the default model (e.g. `gpt-4o`, `claude-sonnet-4-6`) |
-| `API_GATEWAY_URL` | if using gateway | Base URL of the local api-gateway |
-| `API_GATEWAY_KEY` | if using gateway | Auth token for the api-gateway |
+```env
+DATABASE_URL=mysql://screenshat:password@localhost:3306/screenshat
+INTERNAL_CAPTURE_KEY=any-random-hex-string
+PORT=5091
+```
+
+Push the database schema (auto-creates tables):
+
+```bash
+pnpm db:push
+```
+
+Start the dev server:
+
+```bash
+pnpm dev
+```
+
+The app runs at `http://localhost:5091` by default.
+
+You need Chromium or Chrome installed. Playwright will use whatever it finds at common system paths (`/usr/bin/chromium-browser`, `/usr/bin/google-chrome`, etc.). If nothing is found automatically:
+
+```bash
+npx playwright install chromium
+```
 
 ## LLM Setup
 
-Vision analysis is optional — captures work without it. Set `LLM_PROVIDER` in `.env` to choose how analysis calls are made.
+Vision analysis is optional — captures work without it. When you run analysis, the server sends the screenshot to whichever provider `LLM_PROVIDER` points at.
 
 ### Option 1 — Local api-gateway (default)
 
-Leave `LLM_PROVIDER` unset or set it to `gateway`. Point `API_GATEWAY_URL` at a running api-gateway instance and supply `API_GATEWAY_KEY`.
+Leave `LLM_PROVIDER` unset or set it to `gateway`. Set `API_GATEWAY_URL` and `API_GATEWAY_KEY` to point at a running api-gateway instance. The gateway call goes to Anthropic claude-sonnet by default.
 
 ```env
 LLM_PROVIDER=gateway
@@ -79,137 +76,80 @@ API_GATEWAY_KEY=your-gateway-key
 
 ### Option 2 — Direct provider
 
-Set `LLM_PROVIDER` to `openai`, `anthropic`, or `google` and supply `LLM_API_KEY`. Default models are `gpt-4o`, `claude-sonnet-4-6`, and `gemini-3-flash-preview` respectively. Override the model with `LLM_MODEL`.
+Set `LLM_PROVIDER` to `openai`, `anthropic`, or `google`, then supply a key. Override the model with `LLM_MODEL`.
 
 ```env
 # OpenAI
 LLM_PROVIDER=openai
 LLM_API_KEY=sk-...
-LLM_MODEL=gpt-4o          # optional
+LLM_MODEL=gpt-5.2          # optional — this is the default
 
 # Anthropic
 LLM_PROVIDER=anthropic
 LLM_API_KEY=sk-ant-...
+# defaults to claude-sonnet-4-6
 
 # Google
 LLM_PROVIDER=google
 LLM_API_KEY=AIza...
+# defaults to gemini-3-flash-preview
 ```
 
-## Preset Reference
+## Self-Hosting / Deployment
 
-### Social
+The production instance runs on port `5091` behind Caddy with prefix stripping:
 
-| Preset | Dimensions | Ratio |
-|--------|-----------|-------|
-| OG / Facebook | 1200 x 630 | 1.91:1 |
-| Twitter / X | 1200 x 675 | 16:9 |
-| LinkedIn | 1200 x 627 | 1.91:1 |
-| Instagram Square | 1080 x 1080 | 1:1 |
-| Instagram Portrait | 1080 x 1350 | 4:5 |
-| Instagram Story | 1080 x 1920 | 9:16 |
-| Pinterest | 1000 x 1500 | 2:3 |
-
-### Mobile
-
-| Preset | Dimensions | Device scale |
-|--------|-----------|-------------|
-| iPhone 14/15 | 390 x 844 | 3x |
-| Android (Pixel 7) | 412 x 915 | 3x |
-| Tablet Portrait | 768 x 1024 | 2x |
-
-### High Resolution (landscape + portrait)
-
-| Preset | Output pixels | Viewport | Scale |
-|--------|-------------|---------|-------|
-| 2K QHD | 2560 x 1440 | 1280 x 720 | 2x |
-| 4K UHD | 3840 x 2160 | 1920 x 1080 | 2x |
-| 8K UHD | 7680 x 4320 | 1920 x 1080 | 4x |
-| 16K | 15360 x 8640 | 1920 x 1080 | 8x |
-| 2K Portrait | 1440 x 2560 | 720 x 1280 | 2x |
-| 4K Portrait | 2160 x 3840 | 1080 x 1920 | 2x |
-| 8K Portrait | 4320 x 7680 | 1080 x 1920 | 4x |
-| 16K Portrait | 8640 x 15360 | 1080 x 1920 | 8x |
-
-High-res presets use `deviceScaleFactor` instead of a giant viewport, so page content renders at a normal scale and Playwright outputs the full pixel count.
-
-## API
-
-The api-gateway exposes a public endpoint for single-shot capture. Authentication is handled by the gateway; no session cookie is required.
-
-### POST /v1/screenshot/capture
-
-Capture a URL and get one or more PNGs back as base64.
-
-**Request body:**
-
-```json
-{
-  "url": "https://example.com",
-  "presets": ["og-facebook", "twitter"],
-  "waitStrategy": "networkidle",
-  "extraWaitMs": 0
+```caddyfile
+handle_path /screenshat/* {
+    reverse_proxy localhost:5091
 }
 ```
 
-`presets` defaults to all 7 social presets if omitted. `waitStrategy` options: `networkidle` (default), `load`, `domcontentloaded`, `commit`.
-
-**Response:**
-
-```json
-{
-  "url": "https://example.com",
-  "screenshots": [
-    {
-      "preset": "og-facebook",
-      "label": "OG / Facebook",
-      "width": 1200,
-      "height": 630,
-      "mimeType": "image/png",
-      "imageData": "iVBORw0KGgo..."
-    }
-  ]
-}
-```
-
-**Example with curl:**
+Build and start:
 
 ```bash
-curl -s -X POST https://your-host/v1/screenshot/capture \
-  -H "X-API-Key: $API_GATEWAY_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"url":"https://example.com","presets":["twitter"]}' \
-  | jq -r '.screenshots[0].imageData' | base64 -d > screenshot.png
+pnpm build    # Vite (client) + esbuild (server → dist/)
+pnpm start
 ```
 
-Valid `presets` values are the keys in the tables above (e.g. `og-facebook`, `twitter`, `4k`, `mobile-iphone`, `2k-portrait`).
+### Environment Variables
 
-## Architecture
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `DATABASE_URL` | yes | MySQL connection string |
+| `INTERNAL_CAPTURE_KEY` | yes | Secret for internal API routes |
+| `PORT` | no | Server port — defaults to 3000, auto-increments if busy |
+| `LLM_PROVIDER` | no | `gateway` (default), `openai`, `anthropic`, or `google` |
+| `LLM_API_KEY` | if direct provider | API key for the chosen provider |
+| `LLM_MODEL` | no | Override the default model for the chosen provider |
+| `API_GATEWAY_URL` | if gateway | Base URL of the local api-gateway |
+| `API_GATEWAY_KEY` | if gateway | Auth key for the api-gateway |
+| `JWT_SECRET` | no | Cookie signing secret |
+| `OAUTH_SERVER_URL` | no | OAuth provider base URL |
+| `OWNER_OPEN_ID` | no | OpenID identifier for the admin user |
 
-Full-stack TypeScript monorepo. Express handles the API and serves the Vite-built React client. tRPC gives end-to-end type safety between client and server without a generated schema file.
+### Vite base path
 
-```
-server/           Express + tRPC routers, Playwright service, download/ZIP routes
-server/_core/     Framework wiring: tRPC setup, env, session, LLM client, OAuth
-client/src/       React 19 + Vite frontend
-client/src/pages/ Home (capture form), History, CaptureResults
-shared/           Types, preset definitions, constants shared by both sides
-drizzle/          Schema, migrations
-```
+The client is built with `base: '/screenshat/'`. If you serve it at a different path prefix, update `vite.config.ts` before building.
 
-**Key dependencies:** Playwright 1.58, Drizzle ORM + MySQL2, tRPC 11, React 19, Vite 7, Tailwind 4, Radix UI, Vitest, Zod 4, archiver, png-chunks-extract/encode/text.
+### Database
+
+MySQL only. Run `pnpm db:push` after any schema change — Drizzle generates and applies migrations automatically. Three tables: `users`, `captureJobs`, `screenshots`.
+
+### Storage
+
+Screenshots are stored on local disk at `data/screenshots/` and served directly by Express. No object storage required.
 
 ## Development
 
 ```bash
-pnpm dev          # watch mode: tsx (server) + Vite (client)
-pnpm check        # TypeScript type check, no emit
-pnpm test         # Vitest (node environment)
-pnpm format       # Prettier
-pnpm db:push      # drizzle-kit generate + migrate
+pnpm dev        # tsx watch (server) + Vite dev server (client)
+pnpm check      # TypeScript type check
+pnpm test       # Vitest (all *.test.ts files in server/)
+pnpm format     # Prettier
 ```
 
-Tests live alongside the modules they cover (`server/*.test.ts`). Run a single file:
+Run a single test file:
 
 ```bash
 pnpm vitest run server/capture.test.ts
@@ -217,8 +157,8 @@ pnpm vitest run server/capture.test.ts
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+MIT
 
 ---
 
-Built by [Luke Steuber](https://lukesteuber.com) — [@lukesteuber.com](https://bsky.app/profile/lukesteuber.com) on Bluesky.
+Built by [Luke Steuber](https://lukesteuber.com) — [@lukesteuber.com](https://bsky.app/profile/lukesteuber.com) on Bluesky
