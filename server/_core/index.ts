@@ -10,6 +10,7 @@ import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import zipRouter from "../zipRoute";
 import downloadRouter from "../downloadRoute";
+import captureApiRouter from "../captureApiRoute";
 import { DATA_DIR } from "../storage";
 import { startCaptureCleanupScheduler } from "./captureCleanup";
 
@@ -45,6 +46,8 @@ async function startServer() {
   // Download routes
   app.use(zipRouter);
   app.use(downloadRouter);
+  // Internal API capture route (used by api-gateway)
+  app.use(captureApiRouter);
   // tRPC API
   app.use(
     "/api/trpc",
