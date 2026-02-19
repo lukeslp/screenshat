@@ -7,6 +7,8 @@
 
 Screenshot any URL at the exact pixel dimensions each platform expects — social cards, mobile viewports, and print-quality resolutions up to 16K. Captures run through Playwright headless Chromium; the results land in your history with download and ZIP export built in.
 
+![screenshat UI](docs/screenshots/screenshat-ui.png)
+
 ## Features
 
 - **Capture 18 presets in one shot** — social cards (OG/Facebook 1200x630, Twitter/X 1200x675, LinkedIn 1200x627, Instagram square/portrait/story, Pinterest 1000x1500), mobile viewports (iPhone 14/15 390x844, Pixel 7 412x915, iPad portrait 768x1024), and high-res landscape + portrait (2K through 16K at correct device pixel ratios)
@@ -20,6 +22,15 @@ Screenshot any URL at the exact pixel dimensions each platform expects — socia
 - **Capture history** — every job is persisted in MySQL via Drizzle ORM; browse, re-download, or delete past captures
 - **Rate limiting** — per-IP limits on both capture and analysis endpoints keep the service usable under concurrent load
 - **URL safety validation** — private IP ranges and localhost are blocked before Playwright touches the request
+
+## Demo
+
+These screenshots were captured with screenshat itself — 1200×675 Twitter/X preset, network-idle wait strategy:
+
+| | | |
+|---|---|---|
+| ![Consensus visualization](docs/screenshots/demo-consensus.png) | ![Steam library](docs/screenshots/demo-steam.png) | ![Language network](docs/screenshots/demo-language-network.png) |
+| dr.eamer.dev/datavis/interactive/consensus | dr.eamer.dev/steam | dr.eamer.dev/datavis/interactive/language/network |
 
 ## Quick Start
 
@@ -94,39 +105,50 @@ The api-gateway exposes a public endpoint for single-shot capture. Authenticatio
 
 ### POST /v1/screenshot/capture
 
-Capture a URL and get the PNG back as base64.
+Capture a URL and get one or more PNGs back as base64.
 
 **Request body:**
 
 ```json
 {
   "url": "https://example.com",
-  "preset": "og-facebook"
+  "presets": ["og-facebook", "twitter"],
+  "waitStrategy": "networkidle",
+  "extraWaitMs": 0
 }
 ```
+
+`presets` defaults to all 7 social presets if omitted. `waitStrategy` options: `networkidle` (default), `load`, `domcontentloaded`, `commit`.
 
 **Response:**
 
 ```json
 {
-  "image": "iVBORw0KGgo...",
-  "mimeType": "image/png",
-  "width": 1200,
-  "height": 630,
-  "preset": "og-facebook"
+  "url": "https://example.com",
+  "screenshots": [
+    {
+      "preset": "og-facebook",
+      "label": "OG / Facebook",
+      "width": 1200,
+      "height": 630,
+      "mimeType": "image/png",
+      "imageData": "iVBORw0KGgo..."
+    }
+  ]
 }
 ```
 
 **Example with curl:**
 
 ```bash
-curl -X POST https://dr.eamer.dev/api-gateway/v1/screenshot/capture \
-  -H "Authorization: Bearer $API_GATEWAY_KEY" \
+curl -s -X POST https://dr.eamer.dev/v1/screenshot/capture \
+  -H "X-API-Key: $API_GATEWAY_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"url": "https://example.com", "preset": "twitter"}' | jq '.image' -r | base64 -d > screenshot.png
+  -d '{"url":"https://example.com","presets":["twitter"]}' \
+  | jq -r '.screenshots[0].imageData' | base64 -d > screenshot.png
 ```
 
-Valid `preset` values are the keys listed in the preset tables above (e.g. `og-facebook`, `twitter`, `4k`, `mobile-iphone`).
+Valid `presets` values are the keys in the tables above (e.g. `og-facebook`, `twitter`, `4k`, `mobile-iphone`, `2k-portrait`).
 
 ## Architecture
 
