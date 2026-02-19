@@ -119,6 +119,8 @@
   }
   body {
     @apply bg-background text-foreground;
+    background-image: radial-gradient(circle, oklch(0.20 0.01 60) 1px, transparent 1px);
+    background-size: 24px 24px;
   }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),

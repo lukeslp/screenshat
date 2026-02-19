@@ -129,6 +129,16 @@ export default function Home() {
 
       <main className="flex-1 container py-8 md:py-12">
         <div className="max-w-2xl mx-auto space-y-5">
+          {/* Brand header */}
+          <div className="pb-1">
+            <h1 className="text-2xl font-bold tracking-tight font-mono leading-none">
+              screen<span className="text-primary">shat</span>
+            </h1>
+            <p className="text-sm text-muted-foreground/70 mt-1.5">
+              social screenshots. zero fuss.
+            </p>
+          </div>
+
           {/* URL Input */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
@@ -304,7 +314,7 @@ export default function Home() {
                 <p className="text-xs text-muted-foreground">
                   {bulkProgress !== null
                     ? `Processing URL ${bulkProgress.done + 1} of ${bulkProgress.total}. Results will appear in history.`
-                    : "Loading page, waiting for content to render, then capturing each dimension. This may take a minute for complex pages."}
+                    : "Launching browser, rendering the page, capturing each format. Complex pages can take a minute."}
                 </p>
               </div>
             </div>
