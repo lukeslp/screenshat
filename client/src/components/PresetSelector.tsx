@@ -185,8 +185,13 @@ export default function PresetSelector({
     }
   };
 
+  const highresLandscape = HIGHRES_PRESETS.filter(p => p.width >= p.height);
+  const highresPortrait = HIGHRES_PRESETS.filter(p => p.width < p.height);
+
   const socialAllSelected = SOCIAL_PRESETS.every(p => selectedKeys.includes(p.key));
   const highresAllSelected = HIGHRES_PRESETS.every(p => selectedKeys.includes(p.key));
+  const highresLandscapeAllSelected = highresLandscape.every(p => selectedKeys.includes(p.key));
+  const highresPortraitAllSelected = highresPortrait.every(p => selectedKeys.includes(p.key));
   const mobileAllSelected = MOBILE_PRESETS.every(p => selectedKeys.includes(p.key));
   const socialCount = SOCIAL_PRESETS.filter(p => selectedKeys.includes(p.key)).length;
   const highresCount = HIGHRES_PRESETS.filter(p => selectedKeys.includes(p.key)).length;
