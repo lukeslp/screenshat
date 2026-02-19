@@ -84,7 +84,7 @@ async function analyzeWithGateway(imageUrl: string, prompt: string): Promise<str
 async function analyzeWithOpenAI(imageUrl: string, prompt: string): Promise<string> {
   const { default: OpenAI } = await import("openai");
   const client = new OpenAI({ apiKey: LLM_API_KEY });
-  const model = LLM_MODEL || "gpt-4.1"; // released Apr 2025; gpt-4o still works
+  const model = LLM_MODEL || "gpt-5.2";
 
   const response = await client.chat.completions.create({
     model,
@@ -140,7 +140,7 @@ async function analyzeWithAnthropic(imageUrl: string, prompt: string): Promise<s
 async function analyzeWithGoogle(imageUrl: string, prompt: string): Promise<string> {
   const { GoogleGenerativeAI } = await import("@google/generative-ai");
   const client = new GoogleGenerativeAI(LLM_API_KEY);
-  const model = client.getGenerativeModel({ model: LLM_MODEL || "gemini-2.5-flash" }); // stable; gemini-3-flash-preview also available
+  const model = client.getGenerativeModel({ model: LLM_MODEL || "gemini-3-flash-preview" });
 
   // Extract raw base64 from data URI
   const base64 = imageUrl.startsWith("data:")
