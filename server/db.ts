@@ -1,4 +1,4 @@
-import { eq, desc } from "drizzle-orm";
+import { and, eq, desc, isNull } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users, captureJobs, screenshots, type InsertCaptureJob, type InsertScreenshot } from "../drizzle/schema";
 import { ENV } from './_core/env';
@@ -90,7 +90,7 @@ export async function getUserByOpenId(openId: string) {
 
 // ---- Capture Jobs ----
 
-export async function createCaptureJob(data: Omit<InsertCaptureJob, "userId">) {
+export async function createCaptureJob(data: Omit<InsertCaptureJob, "id">) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   const result = await db.insert(captureJobs).values(data);
@@ -115,11 +115,56 @@ export async function getAllCaptureJobs(limit = 50) {
   return db.select().from(captureJobs).orderBy(desc(captureJobs.createdAt)).limit(limit);
 }
 
+export async function getAllCaptureJobsByUser(userId: number, limit = 50) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db
+    .select()
+    .from(captureJobs)
+    .where(eq(captureJobs.userId, userId))
+    .orderBy(desc(captureJobs.createdAt))
+    .limit(limit);
+}
+
 export async function getCaptureJobById(id: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   const rows = await db.select().from(captureJobs).where(eq(captureJobs.id, id)).limit(1);
   return rows[0] ?? null;
+}
+
+export async function getCaptureJobByIdForUser(id: number, userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const rows = await db
+    .select()
+    .from(captureJobs)
+    .where(and(eq(captureJobs.id, id), eq(captureJobs.userId, userId)))
+    .limit(1);
+  return rows[0] ?? null;
+}
+
+export async function claimCaptureJobForUserIfUnowned(
+  id: number,
+  userId: number
+): Promise<boolean> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db
+    .update(captureJobs)
+    .set({ userId })
+    .where(and(eq(captureJobs.id, id), isNull(captureJobs.userId)));
+
+  const header = Array.isArray(result) ? result[0] : null;
+  const affectedRows =
+    header &&
+    typeof header === "object" &&
+    "affectedRows" in header &&
+    typeof header.affectedRows === "number"
+      ? header.affectedRows
+      : 0;
+
+  return affectedRows > 0;
 }
 
 export async function deleteCaptureJob(id: number) {
@@ -130,9 +175,20 @@ export async function deleteCaptureJob(id: number) {
   await db.delete(captureJobs).where(eq(captureJobs.id, id));
 }
 
+export async function deleteCaptureJobForUser(id: number, userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db
+    .delete(screenshots)
+    .where(and(eq(screenshots.jobId, id), eq(screenshots.userId, userId)));
+  await db
+    .delete(captureJobs)
+    .where(and(eq(captureJobs.id, id), eq(captureJobs.userId, userId)));
+}
+
 // ---- Screenshots ----
 
-export async function createScreenshot(data: Omit<InsertScreenshot, "userId">) {
+export async function createScreenshot(data: Omit<InsertScreenshot, "id">) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   const result = await db.insert(screenshots).values(data);
@@ -147,11 +203,77 @@ export async function getScreenshotsByJobId(jobId: number) {
   return db.select().from(screenshots).where(eq(screenshots.jobId, jobId));
 }
 
+export async function getScreenshotsByJobIdForUser(jobId: number, userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db
+    .select()
+    .from(screenshots)
+    .where(and(eq(screenshots.jobId, jobId), eq(screenshots.userId, userId)));
+}
+
+export async function claimScreenshotsForJobIfUnowned(
+  jobId: number,
+  userId: number
+): Promise<number> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db
+    .update(screenshots)
+    .set({ userId })
+    .where(and(eq(screenshots.jobId, jobId), isNull(screenshots.userId)));
+
+  const header = Array.isArray(result) ? result[0] : null;
+  const affectedRows =
+    header &&
+    typeof header === "object" &&
+    "affectedRows" in header &&
+    typeof header.affectedRows === "number"
+      ? header.affectedRows
+      : 0;
+
+  return affectedRows;
+}
+
 export async function getScreenshotById(id: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   const rows = await db.select().from(screenshots).where(eq(screenshots.id, id)).limit(1);
   return rows[0] ?? null;
+}
+
+export async function getScreenshotByIdForUser(id: number, userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const rows = await db
+    .select()
+    .from(screenshots)
+    .where(and(eq(screenshots.id, id), eq(screenshots.userId, userId)))
+    .limit(1);
+  return rows[0] ?? null;
+}
+
+export async function claimScreenshotForUserIfUnowned(
+  id: number,
+  userId: number
+): Promise<boolean> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db
+    .update(screenshots)
+    .set({ userId })
+    .where(and(eq(screenshots.id, id), isNull(screenshots.userId)));
+
+  const header = Array.isArray(result) ? result[0] : null;
+  const affectedRows =
+    header &&
+    typeof header === "object" &&
+    "affectedRows" in header &&
+    typeof header.affectedRows === "number"
+      ? header.affectedRows
+      : 0;
+
+  return affectedRows > 0;
 }
 
 export async function updateScreenshotAnalysis(id: number, analysisResult: Record<string, unknown>) {

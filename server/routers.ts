@@ -2,21 +2,26 @@ import { COOKIE_NAME } from "@shared/const";
 import { PRESETS, PRESET_MAP } from "@shared/presets";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, router } from "./_core/trpc";
+import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import { captureScreenshots } from "./screenshotService";
 import { storagePut, DATA_DIR } from "./storage";
 import {
+  claimCaptureJobForUserIfUnowned,
+  claimScreenshotForUserIfUnowned,
+  claimScreenshotsForJobIfUnowned,
   createCaptureJob,
-  updateCaptureJobStatus,
-  getAllCaptureJobs,
   getCaptureJobById,
+  updateCaptureJobStatus,
+  getAllCaptureJobsByUser,
+  getCaptureJobByIdForUser,
   createScreenshot,
-  getScreenshotsByJobId,
   getScreenshotById,
+  getScreenshotsByJobIdForUser,
+  getScreenshotByIdForUser,
   updateScreenshotAnalysis,
   updateScreenshotAltText,
-  deleteCaptureJob,
+  deleteCaptureJobForUser,
 } from "./db";
 import { analyzeWithVision } from "./_core/llm";
 import fs from "fs";
@@ -27,6 +32,40 @@ import { storageDeleteMany } from "./storage";
 import { ENV } from "./_core/env";
 import { consumeRateLimit, getClientIp } from "./_core/rateLimit";
 import { assertSafeCaptureUrl } from "./_core/urlSafety";
+
+async function getCaptureJobForUserOrClaim(jobId: number, userId: number) {
+  const owned = await getCaptureJobByIdForUser(jobId, userId);
+  if (owned) return owned;
+
+  const unowned = await getCaptureJobById(jobId);
+  if (!unowned || unowned.userId !== null) return null;
+
+  await claimCaptureJobForUserIfUnowned(jobId, userId);
+  await claimScreenshotsForJobIfUnowned(jobId, userId);
+  return getCaptureJobByIdForUser(jobId, userId);
+}
+
+async function getScreenshotForUserOrClaim(screenshotId: number, userId: number) {
+  const owned = await getScreenshotByIdForUser(screenshotId, userId);
+  if (owned) return owned;
+
+  const unowned = await getScreenshotById(screenshotId);
+  if (!unowned || unowned.userId !== null) return null;
+
+  await claimCaptureJobForUserIfUnowned(unowned.jobId, userId);
+  await claimScreenshotForUserIfUnowned(screenshotId, userId);
+  return getScreenshotByIdForUser(screenshotId, userId);
+}
+
+function buildFallbackAltText(screenshot: {
+  presetKey: string;
+  width: number;
+  height: number;
+}) {
+  const preset = PRESET_MAP[screenshot.presetKey];
+  const format = preset?.label || screenshot.presetKey;
+  return `Website screenshot in ${format} format (${screenshot.width}x${screenshot.height}).`;
+}
 
 export const appRouter = router({
   system: systemRouter,
@@ -40,9 +79,9 @@ export const appRouter = router({
   }),
 
   capture: router({
-    presets: publicProcedure.query(() => PRESETS),
+    presets: protectedProcedure.query(() => PRESETS),
 
-    start: publicProcedure
+    start: protectedProcedure
       .input(
         z.object({
           url: z.string().url("Please enter a valid URL"),
@@ -82,6 +121,7 @@ export const appRouter = router({
         }
 
         const job = await createCaptureJob({
+          userId: ctx.user.id,
           url: normalizedUrl,
           presets: validKeys,
           waitStrategy: input.waitStrategy,
@@ -107,6 +147,7 @@ export const appRouter = router({
 
             const record = await createScreenshot({
               jobId: job.id,
+              userId: ctx.user.id,
               presetKey: result.presetKey,
               width: result.width,
               height: result.height,
@@ -136,24 +177,30 @@ export const appRouter = router({
         }
       }),
 
-    getJob: publicProcedure
+    getJob: protectedProcedure
       .input(z.object({ jobId: z.number() }))
-      .query(async ({ input }) => {
-        const job = await getCaptureJobById(input.jobId);
+      .query(async ({ input, ctx }) => {
+        const job = await getCaptureJobForUserOrClaim(input.jobId, ctx.user.id);
         if (!job) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Job not found" });
         }
-        const jobScreenshots = await getScreenshotsByJobId(job.id);
+        const jobScreenshots = await getScreenshotsByJobIdForUser(
+          job.id,
+          ctx.user.id
+        );
         return { ...job, screenshots: jobScreenshots };
       }),
 
-    history: publicProcedure
+    history: protectedProcedure
       .input(z.object({ limit: z.number().min(1).max(100).default(50) }).optional())
-      .query(async ({ input }) => {
-        const jobs = await getAllCaptureJobs(input?.limit ?? 50);
+      .query(async ({ input, ctx }) => {
+        const jobs = await getAllCaptureJobsByUser(ctx.user.id, input?.limit ?? 50);
         const jobsWithCounts = await Promise.all(
           jobs.map(async (job) => {
-            const jobScreenshots = await getScreenshotsByJobId(job.id);
+            const jobScreenshots = await getScreenshotsByJobIdForUser(
+              job.id,
+              ctx.user.id
+            );
             return {
               ...job,
               screenshotCount: jobScreenshots.length,
@@ -164,7 +211,7 @@ export const appRouter = router({
         return jobsWithCounts;
       }),
 
-    analyze: publicProcedure
+    analyze: protectedProcedure
       .input(z.object({ screenshotId: z.number() }))
       .mutation(async ({ input, ctx }) => {
         const rateLimit = consumeRateLimit(
@@ -180,7 +227,10 @@ export const appRouter = router({
           });
         }
 
-        const screenshot = await getScreenshotById(input.screenshotId);
+        const screenshot = await getScreenshotForUserOrClaim(
+          input.screenshotId,
+          ctx.user.id
+        );
         if (!screenshot) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Screenshot not found" });
         }
@@ -227,14 +277,18 @@ Return ONLY valid JSON with keys: description (string), focalPoint {x, y} (numbe
         }
       }),
 
-    generateAltText: publicProcedure
+    generateAltText: protectedProcedure
       .input(z.object({ screenshotId: z.number() }))
-      .mutation(async ({ input }) => {
-        const screenshot = await getScreenshotById(input.screenshotId);
+      .mutation(async ({ input, ctx }) => {
+        const screenshot = await getScreenshotForUserOrClaim(
+          input.screenshotId,
+          ctx.user.id
+        );
         if (!screenshot) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Screenshot not found" });
         }
 
+        let altText: string;
         try {
           const prompt = `Generate concise, descriptive alt text for this screenshot.
 The image is a ${screenshot.width}×${screenshot.height}px screenshot of a webpage (preset: ${screenshot.presetKey}).
@@ -244,23 +298,29 @@ Keep it under 125 characters. Return ONLY the alt text string — no quotes, no 
           const filePath = path.join(DATA_DIR, screenshot.fileKey);
           const fileBuffer = await fs.promises.readFile(filePath);
           const base64Image = `data:image/png;base64,${fileBuffer.toString("base64")}`;
-          const altText = (await analyzeWithVision(base64Image, prompt)).trim();
-
-          await updateScreenshotAltText(screenshot.id, altText);
-          return { altText };
+          altText = (await analyzeWithVision(base64Image, prompt)).trim();
+          if (!altText) {
+            throw new Error("LLM returned empty alt text");
+          }
         } catch (error) {
-          console.error("Alt text generation failed:", error);
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message: "Failed to generate alt text",
-          });
+          console.warn(
+            "[AltText] Vision generation failed, using fallback:",
+            error
+          );
+          altText = buildFallbackAltText(screenshot);
         }
+
+        await updateScreenshotAltText(screenshot.id, altText);
+        return { altText };
       }),
 
-    updateAltText: publicProcedure
+    updateAltText: protectedProcedure
       .input(z.object({ screenshotId: z.number(), altText: z.string().max(500) }))
-      .mutation(async ({ input }) => {
-        const screenshot = await getScreenshotById(input.screenshotId);
+      .mutation(async ({ input, ctx }) => {
+        const screenshot = await getScreenshotForUserOrClaim(
+          input.screenshotId,
+          ctx.user.id
+        );
         if (!screenshot) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Screenshot not found" });
         }
@@ -268,19 +328,19 @@ Keep it under 125 characters. Return ONLY the alt text string — no quotes, no 
         return { success: true };
       }),
 
-    deleteJob: publicProcedure
+    deleteJob: protectedProcedure
       .input(z.object({ jobId: z.number() }))
-      .mutation(async ({ input }) => {
-        const job = await getCaptureJobById(input.jobId);
+      .mutation(async ({ input, ctx }) => {
+        const job = await getCaptureJobForUserOrClaim(input.jobId, ctx.user.id);
         if (!job) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Job not found" });
         }
 
-        const screenshots = await getScreenshotsByJobId(job.id);
+        const screenshots = await getScreenshotsByJobIdForUser(job.id, ctx.user.id);
         const fileDeleteResult = await storageDeleteMany(
           screenshots.map(screenshot => screenshot.fileKey)
         );
-        await deleteCaptureJob(input.jobId);
+        await deleteCaptureJobForUser(input.jobId, ctx.user.id);
         return { success: true, fileDeleteResult };
       }),
   }),
