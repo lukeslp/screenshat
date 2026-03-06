@@ -1,9 +1,9 @@
 # screenshat
 
-[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Node.js](https://img.shields.io/badge/Node.js-22+-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
-[![Live](https://img.shields.io/badge/live-dr.eamer.dev%2Fscreenshat-4ade80)](https://dr.eamer.dev/screenshat/)
+[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-22+-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Live](https://img.shields.io/badge/live-dr.eamer.dev%2Fscreenshat-4ade80?style=flat-square)](https://dr.eamer.dev/screenshat/)
 
 Screenshot any URL at the exact dimensions each platform expects — social cards, mobile viewports, and print-quality resolutions up to 16K. Runs headless Chromium via Playwright. Results land in your history with individual download and ZIP export.
 
