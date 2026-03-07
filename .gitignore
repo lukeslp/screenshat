@@ -115,3 +115,6 @@ data/
 # Aider session files
 .aider.chat.history.md
 .aider.input.history
+
+# Claude Code local settings
+.claude/
