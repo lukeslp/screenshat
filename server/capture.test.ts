@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { PRESETS, PRESET_MAP, SOCIAL_PRESETS, HIGHRES_PRESETS, WAIT_STRATEGIES } from "../shared/presets";
+import { PRESETS, PRESET_MAP, SOCIAL_PRESETS, HIGHRES_PRESETS, MOBILE_PRESETS, WAIT_STRATEGIES } from "../shared/presets";
 
 describe("Presets", () => {
   it("should have all expected social media presets", () => {
@@ -93,10 +93,11 @@ describe("Presets", () => {
     expect(sixteenk.height).toBe(8640);
   });
 
-  it("should have 7 social presets and 4 highres presets", () => {
+  it("should have 7 social, 8 highres, 3 mobile presets (18 total)", () => {
     expect(SOCIAL_PRESETS.length).toBe(7);
-    expect(HIGHRES_PRESETS.length).toBe(4);
-    expect(PRESETS.length).toBe(11);
+    expect(HIGHRES_PRESETS.length).toBe(8);
+    expect(MOBILE_PRESETS.length).toBe(3);
+    expect(PRESETS.length).toBe(18);
   });
 
   it("should have unique keys for all presets", () => {
