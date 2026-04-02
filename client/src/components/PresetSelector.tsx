@@ -307,7 +307,7 @@ export default function PresetSelector({
           <span className="text-xs text-muted-foreground/50">Portrait</span>
           <button
             onClick={() => selectAll(highresPortrait)}
-            className="text-[10px] font-mono text-primary/50 hover:text-primary/80 transition-colors uppercase tracking-wide"
+            className="text-xs text-primary/50 hover:text-primary/80 transition-colors"
           >
             {highresPortraitAllSelected ? "none" : "all"}
           </button>

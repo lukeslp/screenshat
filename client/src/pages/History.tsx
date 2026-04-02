@@ -70,14 +70,14 @@ export default function History() {
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-lg font-bold tracking-tight">History</h1>
-              <p className="text-xs text-muted-foreground">
+              <h1 className="text-xl font-bold tracking-tight">History</h1>
+              <p className="text-sm text-muted-foreground">
                 {jobs?.length ?? 0} capture{(jobs?.length ?? 0) !== 1 ? "s" : ""}
               </p>
             </div>
             <Link href="/">
-              <Button size="sm" className="h-7 gap-1 text-[11px]">
-                <Camera className="h-3 w-3" />
+              <Button size="sm" className="h-8 gap-1 text-xs">
+                <Camera className="h-3.5 w-3.5" />
                 New Capture
               </Button>
             </Link>
@@ -122,7 +122,7 @@ export default function History() {
                     <CardContent className="p-3">
                       <div className="flex items-center gap-3">
                         {/* Thumbnail */}
-                        <div className="h-14 w-20 rounded-md bg-secondary/30 overflow-hidden shrink-0 border border-border/30">
+                        <div className="h-16 w-24 rounded-md bg-secondary/30 overflow-hidden shrink-0 border border-border/30">
                           {job.thumbnailUrl ? (
                             <img
                               src={job.thumbnailUrl}
@@ -152,13 +152,13 @@ export default function History() {
                               onClick={e => e.stopPropagation()}
                             >
                               <ExternalLink className="h-2.5 w-2.5 shrink-0" />
-                              <span className="truncate font-mono text-[11px]">
+                              <span className="truncate font-mono text-xs">
                                 {(job.url as string).replace(/^https?:\/\//, "")}
                               </span>
                             </a>
                             <Badge
                               variant={getStatusColor(job.status) as "default" | "destructive" | "secondary" | "outline"}
-                              className="text-[9px] shrink-0 h-4"
+                              className="text-[10px] shrink-0 h-5"
                             >
                               {job.status}
                             </Badge>

@@ -535,7 +535,7 @@ export default function CaptureResults() {
                 )}
               </div>
               <Link href={`/?url=${encodeURIComponent(job.url as string)}`} className="ml-auto shrink-0">
-                <Button variant="outline" size="sm" className="h-6 text-[10px] gap-1 border-destructive/30 text-destructive hover:bg-destructive/10">
+                <Button variant="outline" size="sm" className="h-7 text-xs gap-1 border-destructive/30 text-destructive hover:bg-destructive/10">
                   Retry
                 </Button>
               </Link>
