@@ -85,7 +85,7 @@ function PresetCard({
       <TooltipTrigger asChild>
         <button
           onClick={onToggle}
-          className={`group relative flex items-center gap-2.5 rounded-md border p-2.5 text-left transition-all duration-150 ${
+          className={`group relative flex items-center gap-2.5 rounded-md border p-3 text-left transition-all duration-150 ${
             selected
               ? "border-primary/50 bg-primary/8 shadow-[0_0_0_1px_oklch(0.76_0.16_72/0.15)]"
               : "border-border/50 bg-card/40 hover:border-border hover:bg-card/70"
@@ -93,7 +93,7 @@ function PresetCard({
         >
           {/* Checkbox */}
           <div
-            className={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-[3px] border transition-all ${
+            className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-[3px] border transition-all ${
               selected
                 ? "border-primary bg-primary text-primary-foreground"
                 : "border-border/70 bg-transparent"
@@ -110,19 +110,19 @@ function PresetCard({
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5">
               <Icon
-                className={`h-3 w-3 shrink-0 ${
+                className={`h-3.5 w-3.5 shrink-0 ${
                   selected ? "text-primary" : "text-muted-foreground/70"
                 }`}
               />
-              <span className="text-xs font-semibold truncate">{preset.label}</span>
+              <span className="text-sm font-medium truncate">{preset.label}</span>
             </div>
             <div className="flex items-center gap-1.5 mt-0.5">
-              <span className="text-[10px] font-mono text-muted-foreground/80 tabular-nums">
+              <span className="text-xs font-mono text-muted-foreground/80 tabular-nums">
                 {preset.width}×{preset.height}
               </span>
               {(isHighRes || isMobile) && dpr > 1 && (
                 <span
-                  className={`text-[9px] font-mono px-1 py-px rounded-[3px] font-medium tabular-nums ${
+                  className={`text-[10px] font-mono px-1 py-px rounded-[3px] font-medium tabular-nums ${
                     selected
                       ? "bg-primary/15 text-primary"
                       : "bg-border/40 text-muted-foreground/60"
@@ -132,13 +132,13 @@ function PresetCard({
                 </span>
               )}
               {!isHighRes && !isMobile && (
-                <span className="text-[9px] font-mono text-muted-foreground/40">
+                <span className="text-[10px] font-mono text-muted-foreground/40">
                   {preset.aspectRatio}
                 </span>
               )}
             </div>
             {(isHighRes || isMobile) && dpr > 1 && (
-              <div className="text-[9px] font-mono text-muted-foreground/40 mt-0.5 tabular-nums">
+              <div className="text-[10px] font-mono text-muted-foreground/40 mt-0.5 tabular-nums">
                 viewport {cssW}×{cssH}
               </div>
             )}
@@ -203,19 +203,19 @@ export default function PresetSelector({
       <div>
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <Share2 className="h-3.5 w-3.5 text-primary/80" />
-            <span className="text-xs font-semibold tracking-wide uppercase text-muted-foreground/80">
+            <Share2 className="h-4 w-4 text-primary/80" />
+            <span className="text-sm font-semibold text-muted-foreground/80">
               Social Media
             </span>
-            <span className="text-[10px] font-mono text-muted-foreground/50">
+            <span className="text-xs text-muted-foreground">
               {socialCount}/{SOCIAL_PRESETS.length}
             </span>
           </div>
           <button
             onClick={() => selectAll(SOCIAL_PRESETS)}
-            className="text-[10px] font-mono text-primary/70 hover:text-primary transition-colors uppercase tracking-wide"
+            className="text-xs text-primary/70 hover:text-primary transition-colors"
           >
-            {socialAllSelected ? "none" : "all"}
+            {socialAllSelected ? "None" : "All"}
           </button>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
@@ -234,19 +234,19 @@ export default function PresetSelector({
       <div>
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <Smartphone className="h-3.5 w-3.5 text-primary/80" />
-            <span className="text-xs font-semibold tracking-wide uppercase text-muted-foreground/80">
+            <Smartphone className="h-4 w-4 text-primary/80" />
+            <span className="text-sm font-semibold text-muted-foreground/80">
               Mobile Portrait
             </span>
-            <span className="text-[10px] font-mono text-muted-foreground/50">
+            <span className="text-xs text-muted-foreground">
               {mobileCount}/{MOBILE_PRESETS.length}
             </span>
           </div>
           <button
             onClick={() => selectAll(MOBILE_PRESETS)}
-            className="text-[10px] font-mono text-primary/70 hover:text-primary transition-colors uppercase tracking-wide"
+            className="text-xs text-primary/70 hover:text-primary transition-colors"
           >
-            {mobileAllSelected ? "none" : "all"}
+            {mobileAllSelected ? "None" : "All"}
           </button>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
@@ -265,30 +265,30 @@ export default function PresetSelector({
       <div>
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <Maximize className="h-3.5 w-3.5 text-primary/80" />
-            <span className="text-xs font-semibold tracking-wide uppercase text-muted-foreground/80">
+            <Maximize className="h-4 w-4 text-primary/80" />
+            <span className="text-sm font-semibold text-muted-foreground/80">
               High Resolution
             </span>
-            <span className="text-[10px] font-mono text-muted-foreground/50">
+            <span className="text-xs text-muted-foreground">
               {highresCount}/{HIGHRES_PRESETS.length}
             </span>
           </div>
           <button
             onClick={() => selectAll(HIGHRES_PRESETS)}
-            className="text-[10px] font-mono text-primary/70 hover:text-primary transition-colors uppercase tracking-wide"
+            className="text-xs text-primary/70 hover:text-primary transition-colors"
           >
-            {highresAllSelected ? "none" : "all"}
+            {highresAllSelected ? "None" : "All"}
           </button>
         </div>
 
         {/* Landscape sub-group */}
         <div className="flex items-center justify-between mb-1.5">
-          <span className="text-[10px] font-mono text-muted-foreground/50 uppercase tracking-wide">Landscape</span>
+          <span className="text-xs text-muted-foreground/50">Landscape</span>
           <button
             onClick={() => selectAll(highresLandscape)}
-            className="text-[10px] font-mono text-primary/50 hover:text-primary/80 transition-colors uppercase tracking-wide"
+            className="text-xs text-primary/50 hover:text-primary/80 transition-colors"
           >
-            {highresLandscapeAllSelected ? "none" : "all"}
+            {highresLandscapeAllSelected ? "None" : "All"}
           </button>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 mb-3">
@@ -304,7 +304,7 @@ export default function PresetSelector({
 
         {/* Portrait sub-group */}
         <div className="flex items-center justify-between mb-1.5">
-          <span className="text-[10px] font-mono text-muted-foreground/50 uppercase tracking-wide">Portrait</span>
+          <span className="text-xs text-muted-foreground/50">Portrait</span>
           <button
             onClick={() => selectAll(highresPortrait)}
             className="text-[10px] font-mono text-primary/50 hover:text-primary/80 transition-colors uppercase tracking-wide"

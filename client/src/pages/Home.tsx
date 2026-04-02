@@ -127,14 +127,14 @@ export default function Home() {
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
 
-      <main className="flex-1 container py-8 md:py-12">
+      <main className="flex-1 container py-10 md:py-16">
         <div className="max-w-2xl mx-auto space-y-5">
           {/* Brand header */}
           <div className="pb-1">
-            <h1 className="text-2xl font-bold tracking-tight font-mono leading-none">
+            <h1 className="text-3xl font-bold tracking-tight font-mono leading-none">
               screen<span className="text-primary">shat</span>
             </h1>
-            <p className="text-sm text-muted-foreground/70 mt-1.5">
+            <p className="text-base text-muted-foreground mt-1.5">
               social screenshots. zero fuss.
             </p>
           </div>
@@ -143,13 +143,13 @@ export default function Home() {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="url" className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
-                <Globe className="h-3.5 w-3.5" />
+                <Globe className="h-4 w-4" />
                 {bulkMode ? "URLs (one per line)" : "Website URL"}
               </Label>
               <button
                 type="button"
                 onClick={() => setBulkMode(v => !v)}
-                className={`flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-md transition-colors ${
+                className={`flex items-center gap-1 text-xs font-mono px-2 py-0.5 rounded-md transition-colors ${
                   bulkMode
                     ? "bg-primary/10 text-primary border border-primary/25"
                     : "text-muted-foreground hover:text-foreground hover:bg-secondary/40"
@@ -184,7 +184,7 @@ export default function Home() {
               />
             )}
             {bulkMode && bulkUrls.trim() && (
-              <p className="text-[11px] text-muted-foreground/60 font-mono">
+              <p className="text-xs text-muted-foreground/60 font-mono">
                 {bulkUrls.split("\n").filter(l => l.trim()).length} URL{bulkUrls.split("\n").filter(l => l.trim()).length !== 1 ? "s" : ""}
               </p>
             )}
@@ -200,10 +200,10 @@ export default function Home() {
           <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
             <CollapsibleTrigger asChild>
               <button className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-full py-2">
-                <Settings2 className="h-3.5 w-3.5" />
+                <Settings2 className="h-4 w-4" />
                 <span className="font-medium">Advanced</span>
                 <ChevronDown
-                  className={`h-3.5 w-3.5 ml-auto transition-transform ${
+                  className={`h-4 w-4 ml-auto transition-transform ${
                     advancedOpen ? "rotate-180" : ""
                   }`}
                 />
@@ -262,7 +262,7 @@ export default function Home() {
                   placeholder='e.g. .chart-loaded, #main-content, [data-ready="true"]'
                   className="bg-card/60 font-mono text-xs h-9"
                 />
-                <p className="text-[11px] text-muted-foreground/70">
+                <p className="text-xs text-muted-foreground/70">
                   CSS selector to wait for before capturing. Useful for pages with
                   specific loading indicators.
                 </p>
@@ -281,7 +281,7 @@ export default function Home() {
               selectedPresets.length === 0
             }
             size="lg"
-            className="w-full h-11 text-sm font-semibold gap-2"
+            className="w-full h-12 text-base font-semibold gap-2"
           >
             {bulkProgress !== null ? (
               <>
@@ -311,7 +311,7 @@ export default function Home() {
             <div className="rounded-lg bg-primary/5 border border-primary/10 p-3">
               <div className="flex items-center gap-3">
                 <Loader2 className="h-4 w-4 text-primary animate-spin shrink-0" />
-                <p className="text-xs text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                   {bulkProgress !== null
                     ? `Processing URL ${bulkProgress.done + 1} of ${bulkProgress.total}. Results will appear in history.`
                     : "Launching browser, rendering the page, capturing each format. Complex pages can take a minute."}

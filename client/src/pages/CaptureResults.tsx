@@ -143,19 +143,19 @@ function ScreenshotCard({
             <Button
               size="sm"
               variant="secondary"
-              className="h-7 gap-1 text-[11px] bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20"
+              className="h-8 gap-1 text-xs bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20"
               onClick={() => setPreviewOpen(true)}
             >
-              <Eye className="h-3 w-3" />
+              <Eye className="h-3.5 w-3.5" />
               Preview
             </Button>
             <Button
               size="sm"
               variant="secondary"
-              className="h-7 gap-1 text-[11px] bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20"
+              className="h-8 gap-1 text-xs bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20"
               onClick={handleDownload}
             >
-              <Download className="h-3 w-3" />
+              <Download className="h-3.5 w-3.5" />
               Download
             </Button>
           </div>
@@ -163,16 +163,16 @@ function ScreenshotCard({
         <CardContent className="p-2.5 space-y-1.5">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-xs font-semibold">{preset?.label || screenshot.presetKey}</h3>
-              <p className="text-[10px] text-muted-foreground font-mono">
+              <h3 className="text-sm font-semibold">{preset?.label || screenshot.presetKey}</h3>
+              <p className="text-xs text-muted-foreground font-mono">
                 {screenshot.width} × {screenshot.height}
               </p>
             </div>
             <div className="flex items-center gap-1">
-              <Badge variant="outline" className="text-[9px] px-1 py-0 font-mono h-4">
+              <Badge variant="outline" className="text-[10px] px-1 py-0 font-mono h-5">
                 {preset?.aspectRatio || "—"}
               </Badge>
-              <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4">
+              <Badge variant="secondary" className="text-[10px] px-1 py-0 h-5">
                 {formatBytes(screenshot.fileSizeBytes)}
               </Badge>
             </div>
@@ -181,7 +181,7 @@ function ScreenshotCard({
             <Button
               size="sm"
               variant="outline"
-              className="h-6 flex-1 text-[10px] gap-1"
+              className="h-6 flex-1 text-xs gap-1"
               onClick={handleDownload}
             >
               <Download className="h-2.5 w-2.5" />
@@ -192,25 +192,25 @@ function ScreenshotCard({
           {/* Alt Text Section */}
           <div className="border-t border-border/30 pt-2 space-y-1.5">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                <FileText className="h-2.5 w-2.5" />
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <FileText className="h-3 w-3" />
                 <span className="font-medium">Alt Text</span>
                 {currentAltText && (
-                  <span className="text-[9px] text-primary/60">• embedded in download</span>
+                  <span className="text-[10px] text-primary/60">• embedded in download</span>
                 )}
               </div>
               <button
                 onClick={() => onGenerateAltText(screenshot.id)}
                 disabled={isGeneratingAltText}
                 aria-label={currentAltText ? "Regenerate alt text" : "Generate alt text"}
-                className="flex items-center gap-0.5 text-[9px] text-muted-foreground hover:text-primary transition-colors disabled:opacity-50"
+                className="flex items-center gap-0.5 text-xs text-muted-foreground hover:text-primary transition-colors disabled:opacity-50"
               >
                 {isGeneratingAltText ? (
-                  <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                  <Loader2 className="h-3 w-3 animate-spin" />
                 ) : currentAltText ? (
-                  <RotateCcw className="h-2.5 w-2.5" />
+                  <RotateCcw className="h-3 w-3" />
                 ) : (
-                  <Sparkles className="h-2.5 w-2.5" />
+                  <Sparkles className="h-3 w-3" />
                 )}
                 {isGeneratingAltText ? "Generating…" : currentAltText ? "Regenerate" : "Generate"}
               </button>
@@ -219,11 +219,11 @@ function ScreenshotCard({
               value={currentAltText}
               onChange={e => handleAltTextChange(e.target.value)}
               placeholder="Enter alt text, or click Generate…"
-              className="text-[10px] min-h-[48px] max-h-24 resize-y leading-relaxed py-1.5 px-2"
+              className="text-xs min-h-[48px] max-h-24 resize-y leading-relaxed py-1.5 px-2"
               maxLength={500}
             />
             {currentAltText && (
-              <p className="text-[9px] text-muted-foreground text-right">
+              <p className="text-[10px] text-muted-foreground text-right">
                 {currentAltText.length}/500 · auto-saved
               </p>
             )}
@@ -232,14 +232,14 @@ function ScreenshotCard({
           {/* Analysis Section */}
           <div className="border-t border-border/30 pt-2 space-y-1.5">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                <ScanSearch className="h-2.5 w-2.5" />
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <ScanSearch className="h-3 w-3" />
                 <span className="font-medium">Analysis</span>
                 {analysis && (
                   <Badge
                     variant="outline"
                     className={cn(
-                      "text-[9px] px-1 py-0 h-4 ml-0.5",
+                      "text-[10px] px-1 py-0 h-5 ml-0.5",
                       qualityBadgeClass(analysis.qualityScore)
                     )}
                   >
@@ -251,21 +251,21 @@ function ScreenshotCard({
                 onClick={() => onAnalyze(screenshot.id)}
                 disabled={isAnalyzing}
                 aria-label={analysis ? "Re-analyze screenshot" : "Analyze screenshot"}
-                className="flex items-center gap-0.5 text-[9px] text-muted-foreground hover:text-primary transition-colors disabled:opacity-50"
+                className="flex items-center gap-0.5 text-xs text-muted-foreground hover:text-primary transition-colors disabled:opacity-50"
               >
                 {isAnalyzing ? (
-                  <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                  <Loader2 className="h-3 w-3 animate-spin" />
                 ) : analysis ? (
-                  <RotateCcw className="h-2.5 w-2.5" />
+                  <RotateCcw className="h-3 w-3" />
                 ) : (
-                  <ScanSearch className="h-2.5 w-2.5" />
+                  <ScanSearch className="h-3 w-3" />
                 )}
                 {isAnalyzing ? "Analyzing…" : analysis ? "Re-analyze" : "Analyze"}
               </button>
             </div>
             {analysis && (
               <div className="space-y-1">
-                <p className="text-[10px] text-muted-foreground leading-relaxed">
+                <p className="text-xs text-muted-foreground leading-relaxed">
                   {analysis.description}
                 </p>
                 {analysis.suggestions.length > 0 && (
@@ -273,7 +273,7 @@ function ScreenshotCard({
                     {analysis.suggestions.slice(0, 3).map((s, i) => (
                       <li
                         key={i}
-                        className="text-[9px] text-muted-foreground/80 flex gap-1 items-start"
+                        className="text-[10px] text-muted-foreground/80 flex gap-1 items-start"
                       >
                         <span className="text-primary/40 shrink-0 mt-px">›</span>
                         {s}
@@ -457,7 +457,7 @@ export default function CaptureResults() {
                     <ArrowLeft className="h-3.5 w-3.5" />
                   </button>
                 </Link>
-                <h1 className="text-lg font-bold tracking-tight font-mono">Results</h1>
+                <h1 className="text-xl font-bold tracking-tight">Results</h1>
                 <Badge
                   variant={job.status === "completed" ? "default" : "destructive"}
                   className="text-[10px] h-5"
@@ -466,12 +466,12 @@ export default function CaptureResults() {
                 </Badge>
               </div>
               <div className="flex items-center gap-2 text-xs text-muted-foreground ml-9">
-                <ExternalLink className="h-3 w-3" />
+                <ExternalLink className="h-3.5 w-3.5" />
                 <a
                   href={job.url as string}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:text-foreground transition-colors font-mono text-[11px] truncate max-w-md"
+                  className="hover:text-foreground transition-colors font-mono text-xs truncate max-w-md"
                 >
                   {job.url as string}
                 </a>
@@ -482,8 +482,8 @@ export default function CaptureResults() {
 
             <div className="flex gap-1.5 ml-9 sm:ml-0">
               <Link href="/">
-                <Button variant="outline" size="sm" className="h-7 gap-1 text-[11px]">
-                  <Camera className="h-3 w-3" />
+                <Button variant="outline" size="sm" className="h-8 gap-1 text-xs">
+                  <Camera className="h-3.5 w-3.5" />
                   New
                 </Button>
               </Link>
@@ -492,29 +492,29 @@ export default function CaptureResults() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-7 gap-1 text-[11px]"
+                    className="h-8 gap-1 text-xs"
                     onClick={handleGenerateAllAltText}
                     disabled={batchAltTextProgress !== null}
                     title="Generate alt text for all screenshots missing it"
                   >
                     {batchAltTextProgress !== null ? (
                       <>
-                        <Loader2 className="h-3 w-3 animate-spin" />
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
                         {batchAltTextProgress.done}/{batchAltTextProgress.total}
                       </>
                     ) : (
                       <>
-                        <Zap className="h-3 w-3" />
+                        <Zap className="h-3.5 w-3.5" />
                         Alt Text All
                       </>
                     )}
                   </Button>
                   <Button
                     size="sm"
-                    className="h-7 gap-1 text-[11px]"
+                    className="h-8 gap-1 text-xs"
                     onClick={handleDownloadAll}
                   >
-                    <PackageOpen className="h-3 w-3" />
+                    <PackageOpen className="h-3.5 w-3.5" />
                     Download All
                   </Button>
                 </>
@@ -529,7 +529,7 @@ export default function CaptureResults() {
               <div className="min-w-0">
                 <p className="text-xs font-medium">Capture failed</p>
                 {(job as { errorMessage?: string | null } & typeof job).errorMessage && (
-                  <p className="text-[11px] mt-0.5 opacity-80 break-words">
+                  <p className="text-xs mt-0.5 opacity-80 break-words">
                     {(job as { errorMessage?: string | null } & typeof job).errorMessage}
                   </p>
                 )}
