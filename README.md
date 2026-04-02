@@ -5,7 +5,7 @@
 [![Node.js](https://img.shields.io/badge/Node.js-22+-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Live](https://img.shields.io/badge/live-screenshat.pics-4ade80?style=flat-square)](https://screenshat.pics/)
 
-Capture any site. Screenshots and social cards up to 16K with embedded alt text. Runs headless Chromium via Playwright. Results land in your history with individual download and ZIP export.
+Capture any site. Screenshots and social cards up to 16K, with alt text baked into the PNG. Pick your presets, grab the files, done.
 
 **[→ Try it live at screenshat.pics](https://screenshat.pics/)** · also at [dr.eamer.dev/screenshat](https://dr.eamer.dev/screenshat/)
 
@@ -34,17 +34,16 @@ Capture any site. Screenshots and social cards up to 16K with embedded alt text.
 
 ## Features
 
-- **Capture 18 presets in one shot** - social cards (OG/Facebook 1200x630, Twitter/X 1200x675, LinkedIn 1200x627, Instagram square/portrait/story, Pinterest 1000x1500), mobile viewports (iPhone 14/15 390x844, Pixel 7 412x915, iPad portrait 768x1024), and high-res landscape + portrait (2K through 16K at correct device pixel ratios)
-- **Configurable wait strategy** - choose between network idle, page load, DOMContentLoaded, or first server response; add an optional extra delay for late-rendering content
-- **Element-targeted capture** - pass a CSS selector to clip the output to a specific DOM node
-- **Vision analysis** - request a quality score, focal point coordinates, suggested crop regions for each social format, and improvement notes for any screenshot
-- **Alt text generation** - describes each screenshot in one or two sentences (under 125 characters), stored per-image and editable inline
-- **Alt text embedded in PNG on download** - the `tEXt` chunk is written at download time using the `png-chunk-text` pipeline, so the metadata travels with the file
-- **ZIP export with manifest** - download all screenshots from a job as a single ZIP; if any have alt text, an `alt-text.txt` manifest is included
-- **Capture history** - every job is persisted in MySQL via Drizzle ORM; browse, re-download, or delete past captures
-- **Rate limiting** - per-IP limits on both capture and analysis endpoints keep the service usable under concurrent load
-- **URL safety validation** - private IP ranges and localhost are blocked before Playwright touches the request
-- **Multi-provider LLM** - switch between a local api-gateway, OpenAI, Anthropic, or Google with one env var
+- **18 presets in one shot** -- social cards (OG, Twitter/X, LinkedIn, Instagram, Pinterest), mobile viewports (iPhone, Pixel, iPad), and high-res from 2K through 16K
+- **Wait strategies** -- network idle, load, DOMContentLoaded, or custom delay for late-rendering content
+- **Element targeting** -- pass a CSS selector to clip the output to one DOM node
+- **Vision analysis** -- quality score, focal point, crop suggestions per format, improvement notes
+- **Alt text** -- generated per screenshot, editable inline, embedded as a PNG `tEXt` chunk on download so it travels with the file
+- **ZIP export** -- all screenshots from a job in one archive, with an `alt-text.txt` manifest
+- **History** -- browse, re-download, or delete past captures
+- **Rate limiting** -- per-IP on capture and analysis endpoints
+- **SSRF protection** -- private IPs and localhost blocked before the browser touches the request
+- **Multi-provider LLM** -- swap between a local gateway, OpenAI, Anthropic, or Google with one env var
 
 ## Quick Start
 
@@ -82,7 +81,7 @@ pnpm start
 
 ## LLM Setup
 
-Vision analysis and alt text generation are optional. Captures work without them. When you run analysis, the server sends the screenshot to whichever provider `LLM_PROVIDER` points at.
+Vision analysis and alt text are optional -- captures work fine without them. When you run analysis, the server sends the screenshot to whichever provider `LLM_PROVIDER` points at.
 
 ### Option 1: Local api-gateway (default)
 
@@ -148,11 +147,11 @@ LLM_API_KEY=AIza...
 | 8K Portrait | 4320 × 7680 | 1080 × 1920 | 4× |
 | 16K Portrait | 8640 × 15360 | 1080 × 1920 | 8× |
 
-High-res presets use `deviceScaleFactor` instead of a giant viewport, so page content renders at a normal scale and Playwright outputs the full pixel count.
+High-res presets use `deviceScaleFactor` rather than oversized viewports, so content renders at normal scale while Playwright outputs the full pixel count.
 
 ## Architecture
 
-Full-stack TypeScript monorepo. Express handles the API and serves the Vite-built React client. tRPC gives end-to-end type safety between client and server without a generated schema file.
+TypeScript monorepo. Express serves the API and the Vite-built React client. tRPC handles type safety between the two without a generated schema.
 
 ```
 server/           Express + tRPC routers, Playwright service, download/ZIP routes
@@ -194,11 +193,11 @@ curl -X POST https://screenshat.pics/api/capture \
   -d '{"url": "https://example.com", "presets": ["og-facebook", "twitter-x"]}'
 ```
 
-Returns base64-encoded PNGs inline. Used by the [api-gateway](https://dr.eamer.dev) for the public `POST /v1/screenshot/capture` endpoint.
+Returns base64-encoded PNGs inline. The public endpoint `POST /v1/screenshot/capture` on the [api-gateway](https://dr.eamer.dev) proxies to this.
 
 ### tRPC Procedures
 
-All client-server communication uses tRPC at `/api/trpc`:
+The React client talks to the server through these tRPC procedures at `/api/trpc`:
 
 | Procedure | Type | Purpose |
 |-----------|------|---------|
