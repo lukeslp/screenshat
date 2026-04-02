@@ -39,6 +39,8 @@ async function startServer() {
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
+  // Plain health check for uptime monitors and service manager
+  app.get("/health", (_req, res) => res.json({ ok: true }));
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
   // Serve local screenshot files

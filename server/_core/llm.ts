@@ -5,6 +5,7 @@
 const LLM_PROVIDER = process.env.LLM_PROVIDER || "gateway";
 const LLM_API_KEY = process.env.LLM_API_KEY || "";
 const LLM_MODEL = process.env.LLM_MODEL || "";
+const LLM_TIMEOUT_MS = 60_000;
 
 // Gateway config (default path, used when LLM_PROVIDER=gateway)
 const API_GATEWAY_URL = process.env.API_GATEWAY_URL || "http://localhost:5200";
@@ -66,6 +67,7 @@ async function analyzeWithGateway(imageUrl: string, prompt: string): Promise<str
       media_type: "image/png",
       prompt,
     }),
+    signal: AbortSignal.timeout(LLM_TIMEOUT_MS),
   });
 
   if (!response.ok) {
@@ -97,7 +99,7 @@ async function analyzeWithOpenAI(imageUrl: string, prompt: string): Promise<stri
         ],
       },
     ],
-  });
+  }, { signal: AbortSignal.timeout(LLM_TIMEOUT_MS) });
 
   return response.choices[0]?.message?.content ?? "";
 }
@@ -129,7 +131,7 @@ async function analyzeWithAnthropic(imageUrl: string, prompt: string): Promise<s
         ],
       },
     ],
-  });
+  }, { signal: AbortSignal.timeout(LLM_TIMEOUT_MS) });
 
   const block = response.content[0];
   return block?.type === "text" ? block.text : "";
@@ -147,9 +149,14 @@ async function analyzeWithGoogle(imageUrl: string, prompt: string): Promise<stri
     ? (imageUrl.split(",")[1] ?? imageUrl)
     : imageUrl;
 
-  const response = await model.generateContent([
-    { inlineData: { mimeType: "image/png", data: base64 } },
-    prompt,
+  const response = await Promise.race([
+    model.generateContent([
+      { inlineData: { mimeType: "image/png", data: base64 } },
+      prompt,
+    ]),
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("LLM request timed out")), LLM_TIMEOUT_MS)
+    ),
   ]);
 
   return response.response.text();
