@@ -131,7 +131,7 @@ export default function Home() {
         <div className="max-w-2xl mx-auto space-y-5">
           {/* Brand header */}
           <div className="pb-1">
-            <h1 className="text-3xl font-bold tracking-tight font-mono leading-none">
+            <h1 className="text-4xl font-bold tracking-tight font-mono leading-none">
               screen<span className="text-primary">shat</span>
             </h1>
             <p className="text-base text-muted-foreground mt-1.5">
