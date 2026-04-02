@@ -5,7 +5,7 @@
 [![Node.js](https://img.shields.io/badge/Node.js-22+-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Live](https://img.shields.io/badge/live-dr.eamer.dev%2Fscreenshat-4ade80?style=flat-square)](https://dr.eamer.dev/screenshat/)
 
-Screenshot any URL at the exact dimensions each platform expects — social cards, mobile viewports, and print-quality resolutions up to 16K. Runs headless Chromium via Playwright. Results land in your history with individual download and ZIP export.
+Screenshot any URL at the exact dimensions each platform expects: social cards, mobile viewports, and print-quality resolutions up to 16K. Runs headless Chromium via Playwright. Results land in your history with individual download and ZIP export.
 
 **[→ Try it live at dr.eamer.dev/screenshat](https://dr.eamer.dev/screenshat/)**
 
@@ -34,17 +34,17 @@ Screenshot any URL at the exact dimensions each platform expects — social card
 
 ## Features
 
-- **Capture 19 presets in one shot** — social cards (OG/Facebook 1200×630, Twitter/X 1200×675, LinkedIn 1200×627, Instagram square/portrait/story, Pinterest 1000×1500), mobile viewports (iPhone 14/15 390×844, Pixel 7 412×915, iPad portrait 768×1024), and high-res landscape + portrait (2K through 16K at correct device pixel ratios)
-- **Configurable wait strategy** — choose between network idle, page load, DOMContentLoaded, or first server response; add an optional extra delay for late-rendering content
-- **Element-targeted capture** — pass a CSS selector to clip the output to a specific DOM node
-- **Vision analysis** — request a quality score, focal point coordinates, suggested crop regions for each social format, and improvement notes for any screenshot
-- **Alt text generation** — describes each screenshot in one or two sentences (under 125 characters), stored per-image and editable inline
-- **Alt text embedded in PNG on download** — the `tEXt` chunk is written at download time using the `png-chunk-text` pipeline, so the metadata travels with the file
-- **ZIP export with manifest** — download all screenshots from a job as a single ZIP; if any have alt text, an `alt-text.txt` manifest is included
-- **Capture history** — every job is persisted in MySQL via Drizzle ORM; browse, re-download, or delete past captures
-- **Rate limiting** — per-IP limits on both capture and analysis endpoints keep the service usable under concurrent load
-- **URL safety validation** — private IP ranges and localhost are blocked before Playwright touches the request
-- **Multi-provider LLM** — switch between a local api-gateway, OpenAI, Anthropic, or Google with one env var
+- **Capture 18 presets in one shot** - social cards (OG/Facebook 1200x630, Twitter/X 1200x675, LinkedIn 1200x627, Instagram square/portrait/story, Pinterest 1000x1500), mobile viewports (iPhone 14/15 390x844, Pixel 7 412x915, iPad portrait 768x1024), and high-res landscape + portrait (2K through 16K at correct device pixel ratios)
+- **Configurable wait strategy** - choose between network idle, page load, DOMContentLoaded, or first server response; add an optional extra delay for late-rendering content
+- **Element-targeted capture** - pass a CSS selector to clip the output to a specific DOM node
+- **Vision analysis** - request a quality score, focal point coordinates, suggested crop regions for each social format, and improvement notes for any screenshot
+- **Alt text generation** - describes each screenshot in one or two sentences (under 125 characters), stored per-image and editable inline
+- **Alt text embedded in PNG on download** - the `tEXt` chunk is written at download time using the `png-chunk-text` pipeline, so the metadata travels with the file
+- **ZIP export with manifest** - download all screenshots from a job as a single ZIP; if any have alt text, an `alt-text.txt` manifest is included
+- **Capture history** - every job is persisted in MySQL via Drizzle ORM; browse, re-download, or delete past captures
+- **Rate limiting** - per-IP limits on both capture and analysis endpoints keep the service usable under concurrent load
+- **URL safety validation** - private IP ranges and localhost are blocked before Playwright touches the request
+- **Multi-provider LLM** - switch between a local api-gateway, OpenAI, Anthropic, or Google with one env var
 
 ## Quick Start
 
@@ -82,9 +82,9 @@ pnpm start
 
 ## LLM Setup
 
-Vision analysis and alt text generation are optional — captures work without them. When you run analysis, the server sends the screenshot to whichever provider `LLM_PROVIDER` points at.
+Vision analysis and alt text generation are optional. Captures work without them. When you run analysis, the server sends the screenshot to whichever provider `LLM_PROVIDER` points at.
 
-### Option 1 — Local api-gateway (default)
+### Option 1: Local api-gateway (default)
 
 Leave `LLM_PROVIDER` unset or set it to `gateway`. Set `API_GATEWAY_URL` and `API_GATEWAY_KEY` to point at a running api-gateway instance.
 
@@ -94,7 +94,7 @@ API_GATEWAY_URL=http://localhost:5200
 API_GATEWAY_KEY=your-gateway-key
 ```
 
-### Option 2 — Direct provider
+### Option 2: Direct provider
 
 Set `LLM_PROVIDER` to `openai`, `anthropic`, or `google`, then supply a key. The model defaults are `gpt-5.2`, `claude-sonnet-4-6`, and `gemini-3-flash-preview`. Override with `LLM_MODEL`.
 
@@ -102,7 +102,7 @@ Set `LLM_PROVIDER` to `openai`, `anthropic`, or `google`, then supply a key. The
 # OpenAI
 LLM_PROVIDER=openai
 LLM_API_KEY=sk-...
-LLM_MODEL=gpt-5.2          # optional — this is the default
+LLM_MODEL=gpt-5.2          # optional, this is the default
 
 # Anthropic
 LLM_PROVIDER=anthropic
@@ -183,8 +183,8 @@ pnpm vitest run server/capture.test.ts
 
 ## Roadmap
 
-- [ ] **GIF capture** — record a short animated GIF of the page (scroll, hover states, transitions)
-- [ ] **Video capture** — export a short MP4 of the page rendering or scrolling
+- [ ] **GIF capture** - record a short animated GIF of the page (scroll, hover states, transitions)
+- [ ] **Video capture** - export a short MP4 of the page rendering or scrolling
 - [ ] Scheduled captures / change detection
 - [ ] Bulk URL mode
 
@@ -194,4 +194,4 @@ MIT. See [LICENSE](LICENSE).
 
 ---
 
-Built by [Luke Steuber](https://lukesteuber.com) — [@lukesteuber.com](https://bsky.app/profile/lukesteuber.com) on Bluesky.
+Built by [Luke Steuber](https://lukesteuber.com) - [@lukesteuber.com](https://bsky.app/profile/lukesteuber.com) on Bluesky.
