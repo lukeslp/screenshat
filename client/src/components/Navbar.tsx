@@ -21,7 +21,7 @@ export default function Navbar() {
         <nav className="flex items-center gap-1">
           <Link
             href="/"
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-sm transition-colors ${
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-base transition-colors ${
               location === "/"
                 ? "text-foreground bg-secondary/50"
                 : "text-muted-foreground hover:text-foreground hover:bg-secondary/30"
@@ -32,7 +32,7 @@ export default function Navbar() {
           </Link>
           <Link
             href="/history"
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-sm transition-colors ${
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-base transition-colors ${
               location === "/history"
                 ? "text-foreground bg-secondary/50"
                 : "text-muted-foreground hover:text-foreground hover:bg-secondary/30"
