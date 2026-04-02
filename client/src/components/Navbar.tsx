@@ -1,5 +1,6 @@
-import { Aperture, History, Waves, User } from "lucide-react";
+import { Aperture, History, Waves, User, Sun, Moon } from "lucide-react";
 import { Link, useLocation } from "wouter";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function Navbar() {
   const [location] = useLocation();
