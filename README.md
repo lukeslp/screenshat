@@ -3,11 +3,11 @@
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-22+-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/)
-[![Live](https://img.shields.io/badge/live-dr.eamer.dev%2Fscreenshat-4ade80?style=flat-square)](https://dr.eamer.dev/screenshat/)
+[![Live](https://img.shields.io/badge/live-screenshat.pics-4ade80?style=flat-square)](https://screenshat.pics/)
 
-Screenshot any URL at the exact dimensions each platform expects: social cards, mobile viewports, and print-quality resolutions up to 16K. Runs headless Chromium via Playwright. Results land in your history with individual download and ZIP export.
+Capture any site. Screenshots and social cards up to 16K with embedded alt text. Runs headless Chromium via Playwright. Results land in your history with individual download and ZIP export.
 
-**[→ Try it live at dr.eamer.dev/screenshat](https://dr.eamer.dev/screenshat/)**
+**[→ Try it live at screenshat.pics](https://screenshat.pics/)** · also at [dr.eamer.dev/screenshat](https://dr.eamer.dev/screenshat/)
 
 ![screenshat capture page](https://raw.githubusercontent.com/lukeslp/screenshat/main/docs/screenshots/home.png)
 
@@ -180,6 +180,34 @@ Tests live alongside the modules they cover (`server/*.test.ts`). Run a single f
 ```bash
 pnpm vitest run server/capture.test.ts
 ```
+
+## API
+
+### Internal Capture API
+
+`POST /api/capture` — stateless endpoint for programmatic use. Authenticate with `X-Internal-Key` header.
+
+```bash
+curl -X POST https://screenshat.pics/api/capture \
+  -H "Content-Type: application/json" \
+  -H "X-Internal-Key: $INTERNAL_CAPTURE_KEY" \
+  -d '{"url": "https://example.com", "presets": ["og-facebook", "twitter-x"]}'
+```
+
+Returns base64-encoded PNGs inline. Used by the [api-gateway](https://dr.eamer.dev) for the public `POST /v1/screenshot/capture` endpoint.
+
+### tRPC Procedures
+
+All client-server communication uses tRPC at `/api/trpc`:
+
+| Procedure | Type | Purpose |
+|-----------|------|---------|
+| `capture.start` | mutation | Start a screenshot job |
+| `capture.analyze` | mutation | Run vision analysis on a screenshot |
+| `capture.generateAltText` | mutation | Generate alt text for a screenshot |
+| `capture.updateAltText` | mutation | Edit stored alt text |
+| `capture.history` | query | List past capture jobs |
+| `capture.deleteJob` | mutation | Delete a job and its files |
 
 ## Roadmap
 

@@ -8,8 +8,9 @@ import Home from "./pages/Home";
 import CaptureResults from "./pages/CaptureResults";
 import History from "./pages/History";
 
-// Strip trailing slash from base so wouter matches correctly
-const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+import { getBasePath } from "@/lib/basePath";
+
+const BASE = getBasePath();
 
 function AppRouter() {
   return (

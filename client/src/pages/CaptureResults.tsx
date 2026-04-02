@@ -1,4 +1,5 @@
 import { trpc } from "@/lib/trpc";
+import { getBaseUrl } from "@/lib/basePath";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -108,7 +109,7 @@ function ScreenshotCard({
 
   const handleDownload = () => {
     const a = document.createElement("a");
-    a.href = `${import.meta.env.BASE_URL}api/download/${screenshot.id}`;
+    a.href = `${getBaseUrl()}api/download/${screenshot.id}`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -390,7 +391,7 @@ export default function CaptureResults() {
     if (!job?.screenshots) return;
     try {
       const a = document.createElement("a");
-      a.href = `${import.meta.env.BASE_URL}api/download-zip/${jobId}`;
+      a.href = `${getBaseUrl()}api/download-zip/${jobId}`;
       a.download = `screenshots-${jobId}.zip`;
       document.body.appendChild(a);
       a.click();
