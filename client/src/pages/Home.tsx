@@ -127,7 +127,7 @@ export default function Home() {
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
 
-      <main className="flex-1 container py-10 md:py-16">
+      <main id="main-content" className="flex-1 container py-10 md:py-16">
         <div className="max-w-2xl mx-auto space-y-5">
           {/* Brand header */}
           <div className="pb-1">
@@ -212,12 +212,12 @@ export default function Home() {
             <CollapsibleContent className="space-y-4 pt-2">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <Label className="text-xs text-muted-foreground">Wait Strategy</Label>
+                  <Label htmlFor="wait-strategy" className="text-xs text-muted-foreground">Wait Strategy</Label>
                   <Select
                     value={waitStrategy}
                     onValueChange={v => setWaitStrategy(v as WaitStrategy)}
                   >
-                    <SelectTrigger className="bg-card/60 h-9 text-sm">
+                    <SelectTrigger id="wait-strategy" className="bg-card/60 h-9 text-sm">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -236,8 +236,9 @@ export default function Home() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-xs text-muted-foreground">Extra Wait (ms)</Label>
+                  <Label htmlFor="extra-wait-ms" className="text-xs text-muted-foreground">Extra Wait (ms)</Label>
                   <Input
+                    id="extra-wait-ms"
                     type="number"
                     min={0}
                     max={30000}

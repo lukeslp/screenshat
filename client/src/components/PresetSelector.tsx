@@ -85,6 +85,8 @@ function PresetCard({
       <TooltipTrigger asChild>
         <button
           onClick={onToggle}
+          aria-label={`${preset.label} ${preset.width}×${preset.height}`}
+          aria-pressed={selected}
           className={`group relative flex items-center gap-2.5 rounded-md border p-3 text-left transition-all duration-150 ${
             selected
               ? "border-primary/50 bg-primary/8 shadow-[0_0_0_1px_oklch(0.76_0.16_72/0.15)]"

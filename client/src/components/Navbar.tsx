@@ -8,6 +8,9 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/30 bg-background/90 backdrop-blur-xl">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md">
+        Skip to main content
+      </a>
       <div className="container flex h-14 items-center justify-between">
         <Link href="/" className="flex items-center gap-2.5 group">
           <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 border border-primary/25 group-hover:bg-primary/18 transition-all">
