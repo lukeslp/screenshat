@@ -166,13 +166,13 @@ export default function History() {
 
                           {/* Error message for failed jobs */}
                           {isFailed && errorSnippet && (
-                            <p className="text-[10px] text-destructive/80 flex items-start gap-1">
+                            <p className="text-xs text-destructive/80 flex items-start gap-1">
                               <AlertCircle className="h-2.5 w-2.5 shrink-0 mt-0.5" />
                               <span className="truncate">{errorSnippet}</span>
                             </p>
                           )}
 
-                          <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
                             <span className="flex items-center gap-0.5">
                               <Clock className="h-2.5 w-2.5" />
                               {formatDistanceToNow(new Date(job.createdAt), { addSuffix: true })}
@@ -194,7 +194,7 @@ export default function History() {
                         >
                           <Link href={`/?url=${encodeURIComponent(job.url as string)}`}>
                             <button
-                              className={`h-7 px-2 rounded-md flex items-center gap-1 hover:bg-secondary/60 transition-colors text-[10px] ${
+                              className={`h-7 px-2 rounded-md flex items-center gap-1 hover:bg-secondary/60 transition-colors text-xs ${
                                 isFailed ? "text-primary font-medium" : ""
                               }`}
                               onClick={e => e.stopPropagation()}
@@ -213,7 +213,7 @@ export default function History() {
                             aria-label="Delete capture"
                             disabled={deleteMutation.isPending}
                           >
-                            <Trash2 className="h-3 w-3" />
+                            <Trash2 className="h-3.5 w-3.5" />
                           </button>
                         </div>
                       </div>
@@ -224,9 +224,9 @@ export default function History() {
             </div>
           ) : (
             <div className="text-center py-16">
-              <Camera className="h-10 w-10 text-muted-foreground/20 mx-auto mb-3" />
-              <h3 className="text-sm font-semibold">No captures yet</h3>
-              <p className="text-xs text-muted-foreground mt-1 mb-4">
+              <Camera className="h-12 w-12 text-muted-foreground/20 mx-auto mb-3" />
+              <h3 className="text-base font-semibold">No captures yet</h3>
+              <p className="text-sm text-muted-foreground mt-1 mb-4">
                 Drop a URL on the capture page to get started.
               </p>
               <Link href="/">

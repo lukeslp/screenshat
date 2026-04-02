@@ -309,7 +309,7 @@ export default function PresetSelector({
             onClick={() => selectAll(highresPortrait)}
             className="text-xs text-primary/50 hover:text-primary/80 transition-colors"
           >
-            {highresPortraitAllSelected ? "none" : "all"}
+            {highresPortraitAllSelected ? "None" : "All"}
           </button>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
