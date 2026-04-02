@@ -25,16 +25,47 @@ import {
   Camera,
   FileText,
   RotateCcw,
+  ScanSearch,
+  Zap,
 } from "lucide-react";
 import { useState, useRef } from "react";
 import { Link, useParams } from "wouter";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+
+interface AnalysisResult {
+  description: string;
+  qualityScore: number;
+  suggestions: string[];
+}
+
+function getAnalysis(raw: Record<string, unknown> | null): AnalysisResult | null {
+  if (!raw) return null;
+  const score = typeof raw.qualityScore === "number" ? raw.qualityScore : null;
+  const description = typeof raw.description === "string" ? raw.description : null;
+  if (score === null || !description) return null;
+  return {
+    description,
+    qualityScore: score,
+    suggestions: Array.isArray(raw.suggestions)
+      ? (raw.suggestions as unknown[]).filter((s): s is string => typeof s === "string")
+      : [],
+  };
+}
+
+function qualityBadgeClass(score: number): string {
+  if (score <= 3) return "border-red-500/40 bg-red-500/10 text-red-400";
+  if (score <= 6) return "border-amber-500/40 bg-amber-500/10 text-amber-400";
+  return "border-green-500/40 bg-green-500/10 text-green-400";
+}
 
 function ScreenshotCard({
   screenshot,
   onGenerateAltText,
   onUpdateAltText,
   isGeneratingAltText,
+  onAnalyze,
+  isAnalyzing,
 }: {
   screenshot: {
     id: number;
@@ -49,6 +80,8 @@ function ScreenshotCard({
   onGenerateAltText: (id: number) => void;
   onUpdateAltText: (id: number, text: string) => void;
   isGeneratingAltText: boolean;
+  onAnalyze: (id: number) => void;
+  isAnalyzing: boolean;
 }) {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [editedAltText, setEditedAltText] = useState<string | null>(null);
@@ -84,6 +117,7 @@ function ScreenshotCard({
   const aspectRatio = screenshot.width / screenshot.height;
   const isPortrait = aspectRatio < 1;
   const isSquare = Math.abs(aspectRatio - 1) < 0.1;
+  const analysis = getAnalysis(screenshot.analysisResult);
 
   return (
     <>
@@ -193,6 +227,62 @@ function ScreenshotCard({
               </p>
             )}
           </div>
+
+          {/* Analysis Section */}
+          <div className="border-t border-border/30 pt-2 space-y-1.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                <ScanSearch className="h-2.5 w-2.5" />
+                <span className="font-medium">Analysis</span>
+                {analysis && (
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      "text-[9px] px-1 py-0 h-4 ml-0.5",
+                      qualityBadgeClass(analysis.qualityScore)
+                    )}
+                  >
+                    {analysis.qualityScore}/10
+                  </Badge>
+                )}
+              </div>
+              <button
+                onClick={() => onAnalyze(screenshot.id)}
+                disabled={isAnalyzing}
+                aria-label={analysis ? "Re-analyze screenshot" : "Analyze screenshot"}
+                className="flex items-center gap-0.5 text-[9px] text-muted-foreground hover:text-primary transition-colors disabled:opacity-50"
+              >
+                {isAnalyzing ? (
+                  <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                ) : analysis ? (
+                  <RotateCcw className="h-2.5 w-2.5" />
+                ) : (
+                  <ScanSearch className="h-2.5 w-2.5" />
+                )}
+                {isAnalyzing ? "Analyzing…" : analysis ? "Re-analyze" : "Analyze"}
+              </button>
+            </div>
+            {analysis && (
+              <div className="space-y-1">
+                <p className="text-[10px] text-muted-foreground leading-relaxed">
+                  {analysis.description}
+                </p>
+                {analysis.suggestions.length > 0 && (
+                  <ul className="space-y-0.5">
+                    {analysis.suggestions.slice(0, 3).map((s, i) => (
+                      <li
+                        key={i}
+                        className="text-[9px] text-muted-foreground/80 flex gap-1 items-start"
+                      >
+                        <span className="text-primary/40 shrink-0 mt-px">›</span>
+                        {s}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
 
@@ -235,8 +325,17 @@ export default function CaptureResults() {
     onError: (err) => toast.error("Failed to save alt text: " + err.message),
   });
 
+  const analyzeMutation = trpc.capture.analyze.useMutation({
+    onError: (err) => toast.error(err.message),
+  });
+
   const utils = trpc.useUtils();
   const [generatingAltTextIds, setGeneratingAltTextIds] = useState<number[]>([]);
+  const [analyzingIds, setAnalyzingIds] = useState<number[]>([]);
+  const [batchAltTextProgress, setBatchAltTextProgress] = useState<{
+    done: number;
+    total: number;
+  } | null>(null);
 
   const handleGenerateAltText = async (screenshotId: number) => {
     setGeneratingAltTextIds(prev => [...prev, screenshotId]);
@@ -251,6 +350,40 @@ export default function CaptureResults() {
 
   const handleUpdateAltText = async (screenshotId: number, altText: string) => {
     await updateAltTextMutation.mutateAsync({ screenshotId, altText });
+  };
+
+  const handleAnalyze = async (screenshotId: number) => {
+    setAnalyzingIds(prev => [...prev, screenshotId]);
+    try {
+      await analyzeMutation.mutateAsync({ screenshotId });
+      await utils.capture.getJob.invalidate({ jobId });
+      toast.success("Analysis complete");
+    } finally {
+      setAnalyzingIds(prev => prev.filter(id => id !== screenshotId));
+    }
+  };
+
+  const handleGenerateAllAltText = async () => {
+    if (!job?.screenshots) return;
+    const missing = job.screenshots.filter(ss => !ss.altText);
+    if (missing.length === 0) {
+      toast.info("All screenshots already have alt text");
+      return;
+    }
+    setBatchAltTextProgress({ done: 0, total: missing.length });
+    let done = 0;
+    for (const ss of missing) {
+      try {
+        await generateAltTextMutation.mutateAsync({ screenshotId: ss.id });
+        done++;
+        setBatchAltTextProgress({ done, total: missing.length });
+      } catch {
+        // individual errors shown by mutation's onError
+      }
+    }
+    await utils.capture.getJob.invalidate({ jobId });
+    setBatchAltTextProgress(null);
+    toast.success(`Alt text generated for ${done} screenshot${done !== 1 ? "s" : ""}`);
   };
 
   const handleDownloadAll = async () => {
@@ -354,14 +487,36 @@ export default function CaptureResults() {
                 </Button>
               </Link>
               {job.screenshots.length > 0 && (
-                <Button
-                  size="sm"
-                  className="h-7 gap-1 text-[11px]"
-                  onClick={handleDownloadAll}
-                >
-                  <PackageOpen className="h-3 w-3" />
-                  Download All
-                </Button>
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-7 gap-1 text-[11px]"
+                    onClick={handleGenerateAllAltText}
+                    disabled={batchAltTextProgress !== null}
+                    title="Generate alt text for all screenshots missing it"
+                  >
+                    {batchAltTextProgress !== null ? (
+                      <>
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        {batchAltTextProgress.done}/{batchAltTextProgress.total}
+                      </>
+                    ) : (
+                      <>
+                        <Zap className="h-3 w-3" />
+                        Alt Text All
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="h-7 gap-1 text-[11px]"
+                    onClick={handleDownloadAll}
+                  >
+                    <PackageOpen className="h-3 w-3" />
+                    Download All
+                  </Button>
+                </>
               )}
             </div>
           </div>
@@ -396,6 +551,8 @@ export default function CaptureResults() {
                   onGenerateAltText={handleGenerateAltText}
                   onUpdateAltText={handleUpdateAltText}
                   isGeneratingAltText={generatingAltTextIds.includes(ss.id)}
+                  onAnalyze={handleAnalyze}
+                  isAnalyzing={analyzingIds.includes(ss.id)}
                 />
               ))}
             </div>
