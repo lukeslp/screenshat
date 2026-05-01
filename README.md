@@ -184,7 +184,7 @@ pnpm vitest run server/capture.test.ts
 
 ### Internal Capture API
 
-`POST /api/capture` — stateless endpoint for programmatic use. Authenticate with `X-Internal-Key` header.
+`POST /api/capture`: stateless endpoint for programmatic use. Authenticate with `X-Internal-Key` header.
 
 ```bash
 curl -X POST https://screenshat.pics/api/capture \
