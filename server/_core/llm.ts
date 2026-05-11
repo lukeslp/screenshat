@@ -62,7 +62,7 @@ async function analyzeWithGateway(imageUrl: string, prompt: string): Promise<str
     },
     body: JSON.stringify({
       provider: "anthropic",
-      model: "claude-sonnet-4-5-20250929",
+      model: "claude-opus-4-7",
       image,
       media_type: "image/png",
       prompt,
