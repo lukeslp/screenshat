@@ -46,7 +46,7 @@ Recommended tiers (sit below Urlbox deliberately — niche play, not throughput 
 | Solo | $12 | 1000 | Included | No watermark, ZIP + VPAT-ready manifest |
 | Team | $39 | 5000 | Included | 3 seats, audit-report templates, scheduled re-captures |
 
-**Pricing risk (manager + breaker):** the gateway default model in `server/_core/llm.ts:65` is `claude-opus-4-7` at $0.02-0.05/image. A $12/mo user doing 200 captures consumes $4-10 in opus tokens alone — gross-margin negative before Stripe, hosting, or support. **Default model must move to Haiku/Sonnet before any paid tier ships. Opus stays opt-in.**
+**Pricing risk (manager + breaker):** the gateway default model was moved off `claude-opus-4-7` onto Sonnet, which improves margin materially, but the core risk remains: premium vision defaults can still erode unit economics quickly. **Sonnet is the current default; Haiku remains the next lever if pricing pressure shows up in real usage. Opus should stay opt-in.**
 
 ## GTM (Bullseye — 3 channels)
 
@@ -111,7 +111,7 @@ Specific, falsifiable. Two or more firing → kill the productization. One firin
 
 The whole month is about answering "is the wedge real?" Don't build pricing infrastructure until this clears.
 
-1. **Switch default model off opus.** `server/_core/llm.ts:65` → Haiku for the gateway path; opus opt-in only. One-line change.
+1. **Validate whether Sonnet is cheap enough at real usage.** If margin is still weak, move the gateway path down to Haiku and keep Opus opt-in only.
 2. **Build the CMS compatibility matrix.** Capture a fixture screenshot with embedded alt text. Upload to WordPress, Squarespace, Webflow, Shopify, Notion, GitHub Pages, Medium, Ghost, Substack. Document which preserve `tEXt`. Publish the matrix on the README.
 3. **Re-lead the README around the wedge** (not the preset count). Add the alt-text disclaimer adjacent to the alt-text UI field.
 4. **Run channel test #1 in r/accessibility and the WebAIM list.** Demo a VPAT batch with embedded alt text. Frame outputs as drafts. Track signups, capture frequency, and alt-text edit rate as the leading indicators.
